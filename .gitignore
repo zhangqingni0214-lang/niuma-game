@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Claude Code 本地配置（含 launch.json）
+.claude/
+
+# 设计参考图（不部署）
+assets/_mockup_reference.png
+
+# 备份字体（仅保留 ASCII 文件名版本 vonwaon-16px.ttf）
+assets/凤凰点阵体VonwaonBitmap16px.ttf
+
+# 旧版背景图（已被 4:5 / wide 版本替代，可选保留）
+# assets/horse_bg.png
+# assets/menu_bg.png
+# assets/office_bg.png
+# assets/ox_bg.png

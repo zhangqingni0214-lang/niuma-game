@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>牛马公司</title>
+  <link rel="stylesheet" href="styles.css?v=29" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- 主菜单 -->
+    <section id="screen-menu" class="screen active">
+      <div class="menu-hero-top"></div>
+      <div class="menu-mid">
+      <div class="menu-card">
+        <div class="menu-title-block">
+          <div class="menu-title">牛马公司</div>
+          <div class="menu-sub">你上一次感觉自己还活着，是什么时候？</div>
+        </div>
+        <div class="menu-karma-badge" id="menu-karma">业力 0</div>
+        <button id="btn-start" class="menu-btn primary">今日投胎</button>
+        <button id="btn-continue" class="menu-btn secondary">继续上钟</button>
+        <button id="btn-skills" class="menu-btn skill">嘴硬秘籍</button>
+        <button id="btn-archive" class="menu-btn archive">已故牛马名册</button>
+        <button id="btn-destroy" class="menu-btn danger">销毁前世</button>
+        <div class="menu-archive-meta" id="archive-summary"></div>
+        <div class="menu-foot">这只是一场找回喘息的演习。</div>
+      </div>
+      </div>
+      <div class="menu-hero-bot"></div>
+    </section>
+
+    <!-- 投胎选择 -->
+    <section id="screen-investiture" class="screen">
+      <div class="archive-header">
+        <button class="back-link" id="inv-cancel">‹ 取消</button>
+        <div class="archive-title">投胎</div>
+      </div>
+
+      <div id="inv-step-character">
+        <div class="archive-intro">选一个性格。每种性格走的路都不一样。</div>
+        <div id="inv-characters" class="inv-grid"></div>
+        <button class="menu-btn primary" id="inv-next-job">下一步 · 选职业</button>
+      </div>
+
+      <div id="inv-step-job" class="hidden">
+        <div class="archive-intro">选一个岗位。死过的越多，选择越多。</div>
+        <div id="inv-jobs" class="inv-grid"></div>
+        <button class="menu-btn secondary" id="inv-back-char">‹ 上一步</button>
+        <button class="menu-btn primary" id="inv-start">投胎，开始打工</button>
+      </div>
+    </section>
+
+    <!-- 游戏页 -->
+    <section id="screen-game" class="screen">
+      <div class="game-top">
+        <div class="top-row">
+          <div class="avatar-block">
+            <div class="avatar" id="avatar-emoji"></div>
+            <div class="name" id="name-label">小马</div>
+            <div class="status" id="status-tag">正常</div>
+          </div>
+          <div class="stats-block">
+            <div class="stat-row"><span class="stat-label">健康</span><div class="bar"><div id="stat-health" class="bar-fill health"></div></div><span class="stat-val" id="stat-health-val">80</span></div>
+            <div class="stat-row"><span class="stat-label">压力</span><div class="bar"><div id="stat-stress" class="bar-fill stress"></div></div><span class="stat-val" id="stat-stress-val">30</span></div>
+            <div class="stat-row"><span class="stat-label">心情</span><div class="bar"><div id="stat-mood" class="bar-fill mood"></div></div><span class="stat-val" id="stat-mood-val">70</span></div>
+            <div class="stat-row"><span class="stat-label">疲劳</span><div class="bar"><div id="stat-fatigue" class="bar-fill fatigue"></div></div><span class="stat-val" id="stat-fatigue-val">20</span></div>
+            <div class="stat-row"><span class="stat-label">技能</span><div class="bar"><div id="stat-skill" class="bar-fill skill"></div></div><span class="stat-val" id="stat-skill-val">20</span></div>
+            <div class="stat-row"><span class="stat-label">工资</span><div class="bar"><div id="stat-salary" class="bar-fill salary"></div></div><span class="stat-val" id="stat-salary-val">30</span></div>
+          </div>
+        </div>
+        <div class="money-row">
+          <span id="money">存款 ¥136</span>
+          <span id="salary-amount">月薪 ¥3000</span>
+        </div>
+      </div>
+
+      <div class="day-strip">
+        <span class="day-strip-label">日志</span>
+        <span class="day-strip-day" id="day-label">Day 1</span>
+        <span class="dot">·</span>
+        <span class="day-strip-slot" id="slot-label">上午 09:00</span>
+        <span class="dot">·</span>
+        <span class="day-strip-role" id="role-label">IT</span>
+        <span class="dot">·</span>
+        <span class="day-strip-company" id="company-label">小而美公司</span>
+      </div>
+
+      <div class="progress-row">
+        <span class="progress-label">存活进度</span>
+        <div class="progress-bar"><div id="survival-progress" class="progress-fill"></div></div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-title" id="event-title">—</div>
+        <div class="event-text" id="event-text">—</div>
+      </div>
+
+      <div class="choice-result hidden" id="choice-result">
+        <div class="choice-result-text" id="choice-result-text"></div>
+        <button class="next-btn" id="next-btn">继续 →</button>
+      </div>
+
+      <div class="choices" id="choices"></div>
+
+      <button class="back-link" id="btn-back-menu">‹ 暂时撤离</button>
+    </section>
+
+    <!-- 结局页 -->
+    <section id="screen-ending" class="screen">
+      <div class="ending-wrap">
+        <div class="ending-stamp">终 局</div>
+        <div class="ending-name" id="ending-name">—</div>
+        <div class="ending-day" id="ending-day">—</div>
+        <div class="ending-summary" id="ending-summary">—</div>
+        <div class="ending-stats" id="ending-stats">—</div>
+        <div class="ending-karma" id="ending-karma">—</div>
+        <div class="ending-tag-label">人设标签</div>
+        <div class="ending-tags" id="ending-tags"></div>
+        <div class="ending-btn-row">
+          <button class="menu-btn skill" id="ending-to-skills">🌳 修炼怼功</button>
+          <button class="menu-btn primary" id="ending-replay">再投胎一次</button>
+          <button class="menu-btn secondary" id="ending-back">回地府</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 技能树 -->
+    <section id="screen-skills" class="screen">
+      <div class="archive-header">
+        <button class="back-link" id="skills-back">‹ 返回</button>
+        <div class="archive-title">嘴硬秘籍</div>
+      </div>
+      <div class="archive-intro">每一世积累业力，解锁招式，下一世带着技能重新开战。</div>
+      <div class="skill-meta">
+        <span id="skill-karma">业力 0</span>
+        <span class="dot">·</span>
+        <span id="skill-count">已解锁 0/10</span>
+      </div>
+      <div id="skill-tree"></div>
+    </section>
+
+    <!-- 轮回档案 -->
+    <section id="screen-archive" class="screen">
+      <div class="archive-header">
+        <button class="back-link" id="archive-back">‹ 返回</button>
+        <div class="archive-title">已故牛马名册</div>
+      </div>
+      <div class="archive-intro">地府人事局存档：每一只牛马都怼过，但不是每一只都活下来。</div>
+      <div class="archive-meta" id="archive-meta">—</div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="lives">怼史</button>
+        <button class="tab-btn" data-tab="rank">排行榜</button>
+        <button class="tab-btn" data-tab="endings">终局</button>
+        <button class="tab-btn" data-tab="events">事件</button>
+      </div>
+
+      <div id="archive-lives"   class="archive-tab-content"></div>
+      <div id="archive-rank"    class="archive-tab-content hidden"></div>
+      <div id="archive-endings" class="archive-tab-content hidden"></div>
+      <div id="archive-events"  class="archive-tab-content hidden"></div>
+    </section>
+
+  </div>
+
+  <script src="jobs.js?v=29"></script>
+  <script src="events.js?v=29"></script>
+  <script src="endings.js?v=29"></script>
+  <script src="skills.js?v=29"></script>
+  <script src="game.js?v=29"></script>
+</body>
+</html>
