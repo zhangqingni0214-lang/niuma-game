@@ -69,6 +69,9 @@ function newGame(characterId, jobId) {
     money: Math.round(job.salary / 22) + inheritedMoney,
     inheritedMoney,
     salaryAmount: job.salary,    // 月薪具体数字
+    initialSalary: stats.salary, // 投胎时的工资分，用于 Day 7 绩效倒挂判定
+    bonusPaidDay7: false,        // Day 7 绩效是否已发
+    pendingBonusModal: null,     // 待弹的绩效通知
     medicalCost: 0,              // 累计看病费
     history: defaultHistory(),
     log: [],
@@ -228,6 +231,9 @@ function applyEffects(effects, ctx) {
 
   const oldHealth = state.stats.health;
 
+  // 每次选项前清空上次扣款明细
+  state.lastChoiceCosts = [];
+
   for (const [k, v] of Object.entries(adj)) {
     if (k === 'money') {
       state.money += v;
@@ -236,26 +242,37 @@ function applyEffects(effects, ctx) {
     }
   }
 
-  // 怼老板扣月薪：snark 选项扣月薪的 5%（向下取整到百元）
+  // 怼老板扣月薪：snark 选项扣月薪的 2.5%（四舍五入到百元）
   if (choice?.snark) {
-    const fine = Math.floor((state.salaryAmount || 0) * 0.05 / 100) * 100;
+    const fine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
     if (fine > 0) {
       state.money -= fine;
       state.snarkFine = (state.snarkFine || 0) + fine;
+      state.lastChoiceCosts.push({ type: 'snark', amount: fine, reason: pickSnarkReason() });
     }
   }
 
-  // 健康每降 10 点扣 500 看病费（按下降幅度算，不到 10 不扣）
-  // 余数累积到 state.healthDebt，达到 10 也扣
+  // 健康看病费 - 按本次累计降幅档位算（不累进）：1×=¥200, 2×=¥500, 3×+=¥1000
+  // 看病有效：扣款后 health 恢复 +5
   const drop = oldHealth - state.stats.health;
   if (drop > 0) {
     state.healthDebt = (state.healthDebt || 0) + drop;
     const rounds = Math.floor(state.healthDebt / 10);
     if (rounds > 0) {
-      const medical = rounds * 500;
+      let medical;
+      if (rounds === 1) medical = 200;
+      else if (rounds === 2) medical = 500;
+      else medical = 1000;
       state.money -= medical;
       state.medicalCost = (state.medicalCost || 0) + medical;
       state.healthDebt -= rounds * 10;
+      state.stats.health = clamp(state.stats.health + 5, 0, 100);
+      state.lastChoiceCosts.push({
+        type: 'medical',
+        amount: medical,
+        reason: pickMedicalReason(rounds),
+        recover: 5
+      });
     }
   }
 
@@ -265,6 +282,175 @@ function applyEffects(effects, ctx) {
 }
 
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+// =====================
+// 扣款戏谑文案池
+// =====================
+const SNARK_REASONS = [
+  '老板觉得你"嗯"的语气不对',
+  'PM 群里 at 你两次没"收到"',
+  'HR 说你的微笑不达标',
+  '你那句话进了"言论档案"',
+  '微信响应慢于 30 秒，行政罚',
+  '本季度第 N 次嘴贱税',
+  '工位反思费（一次性）',
+  '团结氛围损失补偿金',
+  '老板朋友圈你没点赞',
+  '"情商培训"强制报名费'
+];
+
+const MEDICAL_REASONS_1X = [
+  '胃药 + 颈椎贴', '挂号费 + 药店一趟', '理疗一次',
+  '体检复查项 + 出租车', '心理咨询半小时', '夜间急诊挂号',
+  '中医开了三贴', '过敏药 + 眼药水', '感冒糖浆 × 2'
+];
+const MEDICAL_REASONS_2X = [
+  '挂号 + 拍片 + 取药', '急诊押金 + 输液', '医院折腾一下午',
+  '体检 + 复查 + 解读费', '颈椎理疗 5 次包月'
+];
+const MEDICAL_REASONS_3X = [
+  '住院一晚 + 检查全套', '急救 + 转院 + 留观',
+  '体检报告解读 + 推荐疗法'
+];
+
+function pickSnarkReason() {
+  return SNARK_REASONS[Math.floor(Math.random() * SNARK_REASONS.length)];
+}
+function pickMedicalReason(rounds) {
+  let pool = MEDICAL_REASONS_1X;
+  if (rounds >= 3) pool = MEDICAL_REASONS_3X;
+  else if (rounds >= 2) pool = MEDICAL_REASONS_2X;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+const QUIPS_SNARK = [
+  '钱没了，活还在干。',
+  '存款少了，你也少了。',
+  '公司不会亏待你 —— 是亏你。',
+  '工资条上又少了一行。',
+  '这笔钱，建议忘掉。',
+  '认了认了，明天接着上。',
+  '怼一句，少一顿外卖。'
+];
+const QUIPS_MEDICAL = [
+  '建议下次别熬夜了。',
+  '健康每减 10，钱包减 500，这就是性价比。',
+  '你这身体，已经在贷款打工了。',
+  '看病的钱，是公司发的工资里出的。',
+  '医生比老板挣得多，建议转行。'
+];
+const QUIPS_BOTH = [
+  '怼一句、病一下，¥XXX 蒸发。',
+  '今天身体和工资同时遭难。',
+  '财务和体检报告同时变红。',
+  '老板看了一眼，HR 笑了一下，¥XXX 就没了。'
+];
+
+function pickQuip(costs) {
+  const hasSnark = costs.some(c => c.type === 'snark');
+  const hasMedical = costs.some(c => c.type === 'medical');
+  let pool = QUIPS_SNARK;
+  if (hasSnark && hasMedical) pool = QUIPS_BOTH;
+  else if (hasMedical) pool = QUIPS_MEDICAL;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// =====================
+// 顶部 Toast 轻提示
+// =====================
+let _toastTimer = null;
+function showToast(text, duration = 2200) {
+  const el = $('#toast');
+  if (!el) return;
+  if (_toastTimer) {
+    clearTimeout(_toastTimer);
+    _toastTimer = null;
+  }
+  el.textContent = text;
+  el.classList.remove('hidden');
+  void el.offsetWidth;        // 强制重排让 transition 触发
+  el.classList.add('show');
+  _toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.classList.add('hidden'), 260);
+  }, duration);
+}
+
+// =====================
+// 绩效到账弹窗
+// =====================
+const BONUS_QUIPS = [
+  '这就是绩效。下周接着干。',
+  '钱到账了，老板的笑也到账了。',
+  '老板说这是你应得的——所以你应得的也就这么多。',
+  '终于有个数字让你不那么想辞职了。',
+  '感谢公司，不感谢老板。'
+];
+const REVERSE_QUIPS = [
+  '你比刚来的时候还菜，\n老板不发钱。',
+  'HR 在群里\n贴了一个红色感叹号。',
+  '"绩效倒挂"——高情商说法。\n低情商叫：做得越多越亏。',
+  '老板看了你的表现，\n叹了口气没说话。',
+  '绩效面谈预约：\n下周一上午 10 点。'
+];
+
+function showBonusModal(data, onClose) {
+  const titleEl = $('#bonus-title');
+  const iconEl = $('#bonus-icon');
+  const mainEl = $('#bonus-main');
+  const amountEl = $('#bonus-amount');
+  const noteEl = $('#bonus-quip');
+
+  if (data.type === 'paid') {
+    titleEl.textContent = '💰 绩效到账';
+    iconEl.textContent = '💰';
+    mainEl.textContent = `老板给你打了 ${data.salary} 分`;
+    amountEl.textContent = `+¥${data.amount}`;
+    amountEl.classList.remove('zero');
+    amountEl.classList.add('positive');
+    noteEl.textContent = BONUS_QUIPS[Math.floor(Math.random() * BONUS_QUIPS.length)];
+  } else {
+    titleEl.textContent = '⚠️ 绩效倒挂';
+    iconEl.textContent = '📉';
+    mainEl.textContent = `工资分 ${data.current}，比起步 ${data.initial} 还低`;
+    amountEl.textContent = '+¥0';
+    amountEl.classList.remove('positive');
+    amountEl.classList.add('zero');
+    noteEl.textContent = REVERSE_QUIPS[Math.floor(Math.random() * REVERSE_QUIPS.length)];
+  }
+
+  $('#bonus-modal').classList.remove('hidden');
+  $('#bonus-close').onclick = () => {
+    $('#bonus-modal').classList.add('hidden');
+    if (onClose) onClose();
+  };
+}
+
+// =====================
+// 扣款弹窗
+// =====================
+function showDeductionModal(costs, onClose) {
+  const total = costs.reduce((a, c) => a + c.amount, 0);
+  const listEl = $('#deduction-list');
+  listEl.innerHTML = '';
+  costs.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'deduction-item';
+    const recoverTag = c.recover ? `<span class="deduction-recover">健康 +${c.recover}</span>` : '';
+    row.innerHTML = `
+      <span class="deduction-reason">${c.type === 'snark' ? '💼' : '🏥'} ${c.reason} ${recoverTag}</span>
+      <span class="deduction-amount">−¥${c.amount}</span>
+    `;
+    listEl.appendChild(row);
+  });
+  $('#deduction-total').textContent = `合计 −¥${total}`;
+  $('#deduction-quip').textContent = pickQuip(costs);
+  $('#deduction-modal').classList.remove('hidden');
+  $('#deduction-close').onclick = () => {
+    $('#deduction-modal').classList.add('hidden');
+    if (onClose) onClose();
+  };
+}
 
 function trackChoice(event, choiceIdx) {
   const h = state.history;
@@ -297,10 +483,32 @@ function advanceTime() {
     state.timeSlot = 0;
     state.day += 1;
 
+    // 每过一天结日薪到存款 + 顶部 toast
+    const dailyWage = Math.round((state.salaryAmount || 0) / 22);
+    state.money += dailyWage;
+    if (dailyWage > 0) {
+      showToast(`💰 日薪到账 +¥${dailyWage}`);
+    }
+
     // 小组长：每天烂货自动累积
     if (state.profile.jobId === 'team_lead') {
       state.stats.fatigue = clamp(state.stats.fatigue + 4, 0, 100);
       state.stats.stress = clamp(state.stats.stress + 3, 0, 100);
+    }
+
+    // Day 7 绩效结算
+    if (state.day === 7 && !state.bonusPaidDay7) {
+      state.bonusPaidDay7 = true;
+      const currentSalary = state.stats.salary;
+      const initial = state.initialSalary;
+      if (currentSalary < initial) {
+        // 工资分低于起始 → 不发，挂"绩效倒挂"通知
+        state.pendingBonusModal = { type: 'reverse', initial, current: currentSalary };
+      } else {
+        const bonus = Math.round((state.salaryAmount * currentSalary) / 100 / 4);
+        state.money += bonus;
+        state.pendingBonusModal = { type: 'paid', amount: bonus, salary: currentSalary };
+      }
     }
   }
 }
@@ -413,6 +621,11 @@ function renderInvestiture(step = 'character') {
   $('#inv-step-character').classList.toggle('hidden', step !== 'character');
   $('#inv-step-job').classList.toggle('hidden', step !== 'job');
 
+  // 底部按钮根据步骤切换显隐
+  $('#inv-next-job').classList.toggle('hidden', step !== 'character');
+  $('#inv-back-char').classList.toggle('hidden', step !== 'job');
+  $('#inv-start').classList.toggle('hidden', step !== 'job');
+
   if (step === 'character') {
     const wrap = $('#inv-characters');
     wrap.innerHTML = '';
@@ -467,6 +680,15 @@ function renderInvestiture(step = 'character') {
 // 游戏主页面
 // =====================
 function renderGame() {
+  // Day 7 绩效通知优先弹出
+  if (state.pendingBonusModal) {
+    const data = state.pendingBonusModal;
+    state.pendingBonusModal = null;
+    saveState();
+    showBonusModal(data, () => renderGame());
+    return;
+  }
+
   // 给 .app 加角色 class，CSS 据此切换背景
   const app = document.querySelector('.app');
   app.classList.remove('char-horse', 'char-ox');
@@ -542,16 +764,25 @@ function makeChoice(ev, idx) {
     skill: choice.requiredSkill || null
   });
 
-  if (choice.result) {
-    $('#choice-result-text').textContent = choice.result;
-    $('#choice-result').classList.remove('hidden');
-    $$('.choice-btn').forEach(b => b.disabled = true);
-    state.pendingEvent = null;
-    saveState();
-    $('#next-btn').onclick = nextStep;
+  state.pendingEvent = null;
+  saveState();
+
+  const showResultOrNext = () => {
+    if (choice.result) {
+      $('#choice-result-text').textContent = choice.result;
+      $('#choice-result').classList.remove('hidden');
+      $$('.choice-btn').forEach(b => b.disabled = true);
+      $('#next-btn').onclick = nextStep;
+    } else {
+      nextStep();
+    }
+  };
+
+  // 有扣款先显示弹窗，关闭后再继续
+  if (state.lastChoiceCosts && state.lastChoiceCosts.length > 0) {
+    showDeductionModal(state.lastChoiceCosts, showResultOrNext);
   } else {
-    state.pendingEvent = null;
-    nextStep();
+    showResultOrNext();
   }
 }
 

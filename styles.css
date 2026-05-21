@@ -867,103 +867,325 @@ html, body {
 .rank-money { font-size: 14px; font-weight: 600; color: #4a3d29; }
 
 /* ============ 投胎选择 ============ */
-#screen-investiture { padding: 16px; }
-.inv-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 18px;
+/* ============ 投胎页 (iOS 系统风) ============ */
+#screen-investiture {
+  padding: 0;
+  background: #f0e3cd;
+  height: 100vh;
 }
-.inv-grid:has(.char-card) {
-  grid-template-columns: 1fr;
+#screen-investiture.active {
+  display: flex;
+  flex-direction: column;
 }
 
-.char-card {
-  background: #f7ecd5;
-  border: 2px solid #c5ab74;
-  border-radius: 10px;
-  padding: 18px;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: center;
+/* iOS nav bar - 44pt 标准高度 */
+.inv-nav {
+  flex: 0 0 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: rgba(240, 227, 205, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 10;
 }
-.char-card:hover { transform: translateY(-2px); }
+.inv-nav-back {
+  background: none;
+  border: none;
+  color: #6f4ba8;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 4px;
+  min-width: 56px;
+  text-align: left;
+}
+.inv-nav-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #2b2b2b;
+}
+.inv-nav-placeholder {
+  min-width: 56px;
+}
+
+/* body 可滚动区 */
+.inv-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 16px 16px;
+}
+.inv-intro {
+  font-size: 12px;
+  color: #6b5d3e;
+  margin: 0 4px 16px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 角色卡片 - 单列、iOS 风 */
+.char-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.char-card {
+  background: #fff;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.05);
+}
+.char-card:active { transform: scale(0.98); }
 .char-card.selected {
   border-color: #8b5fbf;
-  background: linear-gradient(135deg, #f4eaff, #e0ceef);
-  box-shadow: 0 4px 18px rgba(139, 95, 191, 0.3);
+  background: linear-gradient(135deg, #faf4ff, #efe1ff);
+  box-shadow: 0 4px 18px rgba(139, 95, 191, 0.25), 0 0 0 0.5px #c8a5ed;
 }
-.char-emoji {
-  font-size: 56px;
-  margin-bottom: 8px;
-}
-.char-name {
-  font-weight: 800;
-  font-size: 20px;
-  margin-bottom: 6px;
-}
+.char-emoji { font-size: 44px; margin-bottom: 4px; }
+.char-name { font-weight: 700; font-size: 17px; margin-bottom: 4px; color: #1c1c1e; }
 .char-tagline {
-  font-size: 14px;
-  color: #6b5d3e;
-  margin-bottom: 8px;
+  font-size: 12px;
+  color: #6f4ba8;
+  margin-bottom: 6px;
   font-style: italic;
 }
 .char-desc {
-  font-size: 12px;
-  line-height: 1.6;
-  color: #5a4d2e;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #6b6b6b;
 }
 
+/* 职业卡片 - 2 列 Grid */
+.job-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 .job-card {
-  background: #f7ecd5;
-  border: 2px solid #c5ab74;
-  border-radius: 8px;
-  padding: 12px;
+  background: #fff;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  padding: 12px 10px;
   text-align: center;
   cursor: pointer;
   transition: all 0.15s;
-  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), 0 0 0 0.5px rgba(0,0,0,0.04);
 }
-.job-card:hover:not(.locked) { transform: translateY(-2px); }
+.job-card:active:not(.locked) { transform: scale(0.97); }
 .job-card.selected {
   border-color: #8b5fbf;
-  background: linear-gradient(135deg, #f4eaff, #e0ceef);
-  box-shadow: 0 0 0 1px #c8a5ed inset, 0 4px 14px rgba(139, 95, 191, 0.3);
+  background: linear-gradient(135deg, #faf4ff, #efe1ff);
+  box-shadow: 0 0 0 0.5px #c8a5ed, 0 4px 14px rgba(139, 95, 191, 0.25);
 }
 .job-card.locked {
-  opacity: 0.55;
+  opacity: 0.45;
   cursor: not-allowed;
-  background: #e8dcc3;
-  border-style: dashed;
+  background: #ececec;
 }
-.job-icon {
-  font-size: 28px;
-  margin-bottom: 4px;
-}
-.job-name {
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 2px;
-}
-.job-company {
-  font-size: 11px;
-  color: #8a7a52;
-  margin-bottom: 6px;
-}
+.job-icon { font-size: 24px; margin-bottom: 2px; }
+.job-name { font-weight: 700; font-size: 13px; margin-bottom: 2px; color: #1c1c1e; }
+.job-company { font-size: 10px; color: #8a8a8e; margin-bottom: 6px; }
 .job-desc {
-  font-size: 11px;
-  line-height: 1.5;
-  color: #5a4d2e;
-  min-height: 36px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: #6b6b6b;
+  min-height: 32px;
 }
 
-#inv-step-character .menu-btn, #inv-step-job .menu-btn {
-  margin-top: 12px;
+/* 底部 footer 按钮 */
+.inv-footer {
+  flex: 0 0 auto;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(240, 227, 205, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-#inv-step-job .menu-btn.secondary {
+
+/* iOS 风按钮 */
+.ios-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ios-btn:active:not(:disabled) { transform: scale(0.98); opacity: 0.85; }
+.ios-btn-primary {
+  background: linear-gradient(180deg, #9871d3, #6f4ba8);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(139, 95, 191, 0.35);
+}
+.ios-btn-secondary {
+  background: rgba(0,0,0,0.06);
+  color: #2b2b2b;
+}
+.ios-btn:disabled,
+.ios-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============ 扣款弹窗 ============ */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 10, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  animation: modal-fade 0.18s ease-out;
+}
+.modal.hidden { display: none; }
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-card {
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: modal-scale 0.2s cubic-bezier(0.2,0.9,0.4,1);
+}
+@keyframes modal-scale {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 14px;
+  color: #c1322a;
+  letter-spacing: 1px;
+}
+.modal-list {
+  background: #f8f6f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.deduction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #d4c094;
+  gap: 8px;
+}
+.deduction-item:last-child { border-bottom: none; }
+.deduction-reason {
+  color: #4a4030;
+  flex: 1;
+  line-height: 1.4;
+}
+.deduction-amount {
+  color: #c1322a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.deduction-recover {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: #d4f0d0;
+  color: #2a7a2a;
+  font-size: 10px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* 绩效弹窗内容 */
+.bonus-body {
+  text-align: center;
+  padding: 8px 0 14px;
+}
+.bonus-icon {
+  font-size: 48px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.bonus-main {
+  font-size: 13px;
+  color: #4a4030;
   margin-bottom: 8px;
 }
-.menu-btn.disabled, .menu-btn[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
+.bonus-amount {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.bonus-amount.positive { color: #2a7a2a; }
+.bonus-amount.zero { color: #999; }
+
+/* iOS 风顶部 Toast (日薪到账等轻提示) */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: rgba(20, 16, 10, 0.92);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 22px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.hidden { display: none; }
+.modal-total {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 700;
+  color: #c1322a;
+  padding: 0 4px;
+  margin-bottom: 10px;
+  border-top: 1px solid #ececec;
+  padding-top: 8px;
+}
+.modal-quip {
+  font-size: 11.5px;
+  color: #6b6b6b;
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 14px;
+  line-height: 1.5;
+  white-space: pre-line;       /* 支持文案中的 \n 换行 */
 }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>牛马公司</title>
-  <link rel="stylesheet" href="styles.css?v=29" />
+  <link rel="stylesheet" href="styles.css?v=35" />
 </head>
 <body>
   <div class="app">
@@ -33,23 +33,32 @@
 
     <!-- 投胎选择 -->
     <section id="screen-investiture" class="screen">
-      <div class="archive-header">
-        <button class="back-link" id="inv-cancel">‹ 取消</button>
-        <div class="archive-title">投胎</div>
+      <!-- iOS nav bar -->
+      <header class="inv-nav">
+        <button class="inv-nav-back" id="inv-cancel">‹ 取消</button>
+        <div class="inv-nav-title">投胎</div>
+        <span class="inv-nav-placeholder"></span>
+      </header>
+
+      <!-- body 可滚动区 -->
+      <div class="inv-body">
+        <div id="inv-step-character">
+          <div class="inv-intro">选一个性格。每种性格走的路都不一样。</div>
+          <div id="inv-characters" class="inv-grid char-grid"></div>
+        </div>
+
+        <div id="inv-step-job" class="hidden">
+          <div class="inv-intro">选一个岗位。死过的越多，选择越多。</div>
+          <div id="inv-jobs" class="inv-grid job-grid"></div>
+        </div>
       </div>
 
-      <div id="inv-step-character">
-        <div class="archive-intro">选一个性格。每种性格走的路都不一样。</div>
-        <div id="inv-characters" class="inv-grid"></div>
-        <button class="menu-btn primary" id="inv-next-job">下一步 · 选职业</button>
-      </div>
-
-      <div id="inv-step-job" class="hidden">
-        <div class="archive-intro">选一个岗位。死过的越多，选择越多。</div>
-        <div id="inv-jobs" class="inv-grid"></div>
-        <button class="menu-btn secondary" id="inv-back-char">‹ 上一步</button>
-        <button class="menu-btn primary" id="inv-start">投胎，开始打工</button>
-      </div>
+      <!-- 底部按钮 -->
+      <footer class="inv-footer">
+        <button class="ios-btn ios-btn-secondary hidden" id="inv-back-char">‹ 上一步</button>
+        <button class="ios-btn ios-btn-primary" id="inv-next-job">下一步 · 选职业</button>
+        <button class="ios-btn ios-btn-primary hidden" id="inv-start">投胎，开始打工</button>
+      </footer>
     </section>
 
     <!-- 游戏页 -->
@@ -119,7 +128,7 @@
         <div class="ending-tag-label">人设标签</div>
         <div class="ending-tags" id="ending-tags"></div>
         <div class="ending-btn-row">
-          <button class="menu-btn skill" id="ending-to-skills">🌳 修炼怼功</button>
+          <button class="menu-btn skill" id="ending-to-skills">修炼秘籍</button>
           <button class="menu-btn primary" id="ending-replay">再投胎一次</button>
           <button class="menu-btn secondary" id="ending-back">回地府</button>
         </div>
@@ -165,10 +174,38 @@
 
   </div>
 
-  <script src="jobs.js?v=29"></script>
-  <script src="events.js?v=29"></script>
-  <script src="endings.js?v=29"></script>
-  <script src="skills.js?v=29"></script>
-  <script src="game.js?v=29"></script>
+  <!-- 扣款弹窗 -->
+  <div id="deduction-modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-title">💸 财务通知</div>
+      <div class="modal-list" id="deduction-list"></div>
+      <div class="modal-total" id="deduction-total">—</div>
+      <div class="modal-quip" id="deduction-quip">—</div>
+      <button class="ios-btn ios-btn-primary" id="deduction-close">认了</button>
+    </div>
+  </div>
+
+  <!-- 顶部 Toast (日薪到账等轻提示) -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- 绩效到账弹窗 -->
+  <div id="bonus-modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-title" id="bonus-title">💰 绩效到账</div>
+      <div class="bonus-body">
+        <div class="bonus-icon" id="bonus-icon">💰</div>
+        <div class="bonus-main" id="bonus-main">—</div>
+        <div class="bonus-amount" id="bonus-amount">—</div>
+      </div>
+      <div class="modal-quip" id="bonus-quip">—</div>
+      <button class="ios-btn ios-btn-primary" id="bonus-close">领了</button>
+    </div>
+  </div>
+
+  <script src="jobs.js?v=35"></script>
+  <script src="events.js?v=35"></script>
+  <script src="endings.js?v=35"></script>
+  <script src="skills.js?v=35"></script>
+  <script src="game.js?v=35"></script>
 </body>
 </html>
