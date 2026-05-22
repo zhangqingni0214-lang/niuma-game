@@ -239,7 +239,8 @@ function applyEffects(effects, ctx) {
       state.money += v;
       // 事件本身的 money 变化（吃饭/购物/猎头费等）走 toast；
       // 怼老板/看病费走下面的 modal，不在这里 toast
-      if (v !== 0) showMoneyToast(v);
+      // 用 effects.moneyNote 优先，否则 fallback 用事件标题
+      if (v !== 0) showMoneyToast(v, effects.moneyNote || ev?.title);
     } else if (state.stats[k] !== undefined) {
       state.stats[k] = clamp(state.stats[k] + v, 0, 100);
     }
@@ -389,14 +390,15 @@ function _renderNextToast() {
 // money 变化时的戏谑短句
 const MONEY_OUT_TIPS = ['钱包流泪', '钱包震三震', '出血了', '又花了', '心疼一下', '哎呀'];
 const MONEY_IN_TIPS = ['钱包微笑', '终于有点收入', '回血', '到手了', '不容易', '难得'];
-function showMoneyToast(amount) {
+function showMoneyToast(amount, note) {
   if (!amount) return;
+  const noteText = note ? `（${note}）` : '';
   if (amount > 0) {
     const tip = MONEY_IN_TIPS[Math.floor(Math.random() * MONEY_IN_TIPS.length)];
-    showToast(`💰 ${tip} +¥${amount}`);
+    showToast(`💰 ${tip} +¥${amount}${noteText}`);
   } else {
     const tip = MONEY_OUT_TIPS[Math.floor(Math.random() * MONEY_OUT_TIPS.length)];
-    showToast(`💸 ${tip} −¥${Math.abs(amount)}`);
+    showToast(`💸 ${tip} −¥${Math.abs(amount)}${noteText}`);
   }
 }
 
