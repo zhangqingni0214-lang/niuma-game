@@ -237,6 +237,9 @@ function applyEffects(effects, ctx) {
   for (const [k, v] of Object.entries(adj)) {
     if (k === 'money') {
       state.money += v;
+      // 事件本身的 money 变化（吃饭/购物/猎头费等）走 toast；
+      // 怼老板/看病费走下面的 modal，不在这里 toast
+      if (v !== 0) showMoneyToast(v);
     } else if (state.stats[k] !== undefined) {
       state.stats[k] = clamp(state.stats[k] + v, 0, 100);
     }
@@ -356,24 +359,45 @@ function pickQuip(costs) {
 }
 
 // =====================
-// 顶部 Toast 轻提示
+// 顶部 Toast 队列（避免连续 toast 互相覆盖）
 // =====================
-let _toastTimer = null;
-function showToast(text, duration = 2200) {
+const _toastQueue = [];
+let _toastShowing = false;
+function showToast(text, duration = 1800) {
+  _toastQueue.push({ text, duration });
+  if (!_toastShowing) _renderNextToast();
+}
+function _renderNextToast() {
   const el = $('#toast');
   if (!el) return;
-  if (_toastTimer) {
-    clearTimeout(_toastTimer);
-    _toastTimer = null;
-  }
+  if (_toastQueue.length === 0) { _toastShowing = false; return; }
+  _toastShowing = true;
+  const { text, duration } = _toastQueue.shift();
   el.textContent = text;
   el.classList.remove('hidden');
-  void el.offsetWidth;        // 强制重排让 transition 触发
+  void el.offsetWidth;
   el.classList.add('show');
-  _toastTimer = setTimeout(() => {
+  setTimeout(() => {
     el.classList.remove('show');
-    setTimeout(() => el.classList.add('hidden'), 260);
+    setTimeout(() => {
+      el.classList.add('hidden');
+      _renderNextToast();
+    }, 260);
   }, duration);
+}
+
+// money 变化时的戏谑短句
+const MONEY_OUT_TIPS = ['钱包流泪', '钱包震三震', '出血了', '又花了', '心疼一下', '哎呀'];
+const MONEY_IN_TIPS = ['钱包微笑', '终于有点收入', '回血', '到手了', '不容易', '难得'];
+function showMoneyToast(amount) {
+  if (!amount) return;
+  if (amount > 0) {
+    const tip = MONEY_IN_TIPS[Math.floor(Math.random() * MONEY_IN_TIPS.length)];
+    showToast(`💰 ${tip} +¥${amount}`);
+  } else {
+    const tip = MONEY_OUT_TIPS[Math.floor(Math.random() * MONEY_OUT_TIPS.length)];
+    showToast(`💸 ${tip} −¥${Math.abs(amount)}`);
+  }
 }
 
 // =====================
