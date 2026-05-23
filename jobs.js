@@ -9,9 +9,12 @@ window.CHARACTERS = [
     description: '骨子里不服，怼起人来一套一套，但下了班还是要交房租。',
     statOffset: { stress: +5, mood: +5 },
     traits: {
-      // v0.9.4 平衡调整：减弱怼回去的爽快加成（之前 mood+2/stress-2 让小马怼到爽不累）
-      snarkBonus: { mood: +1, stress: -1 },
-      submissivePenalty: { mood: -3 }
+      // v0.9.6: 重新拉大角色差异
+      // 小马的 snark 有爽感（mood+2/stress-2）但代价是工资分跌得快（salary-2）
+      // 忍气吞声反而伤心情 - 让小马"必须怼"
+      snarkBonus:    { mood: +2, stress: -2 },
+      snarkPenalty:  { salary: -2 },
+      submissivePenalty: { mood: -5 }
     }
   },
   {
@@ -22,8 +25,11 @@ window.CHARACTERS = [
     description: '不会拒绝，谁找谁帮忙，干完了别人去抢功劳。',
     statOffset: { salary: +5, fatigue: +5 },
     traits: {
-      submissiveBonus: { fatigue: -3, salary: +1 },
-      snarkPenalty: { salary: -3, stress: +3 }
+      // v0.9.6: 小牛忍气吞声有甜头（疲劳减得多 + 工资分涨）
+      // 但怼回去代价巨大（工资跌得狠 + 压力上得快）— 让小牛"不该怼"
+      submissiveBonus: { fatigue: -5, salary: +2 },
+      submissiveBonusExtra: { health: +1 },  // 小牛专属：忍气吞声还回血
+      snarkPenalty:    { salary: -5, stress: +5 }
     }
   }
 ];
@@ -36,7 +42,8 @@ window.JOBS = [
     icon: '🛠',
     unlockAt: 1,
     salary: 3000,             // 月薪
-    baseStats: { health: 70, stress: 60, mood: 50, fatigue: 40, skill: 50, salary: 15 },
+    // v0.9.6 平衡：salary 从 15 提到 25，避免起步就濒临被开除
+    baseStats: { health: 70, stress: 60, mood: 50, fatigue: 40, skill: 50, salary: 25 },
     startMoney: 200,
     description: '什么都干，什么都救火，工资按头算。',
     eventTags: ['outsource', 'tech', 'all']
@@ -60,7 +67,7 @@ window.JOBS = [
     icon: '🖥',
     unlockAt: 2,
     salary: 12000,
-    baseStats: { health: 65, stress: 75, mood: 50, fatigue: 50, skill: 80, salary: 60 },
+    baseStats: { health: 65, stress: 60, mood: 50, fatigue: 50, skill: 80, salary: 60 },
     startMoney: 200,
     description: '改 bug 修架构跑接口，PM 永远在催。',
     eventTags: ['tech', 'pm', 'all']

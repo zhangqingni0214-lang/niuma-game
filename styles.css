@@ -1257,6 +1257,21 @@ html, body {
   transform: translateX(-50%) translateY(0);
 }
 .toast.hidden { display: none; }
+
+/* v0.9.6 警告 toast - 红色边框 + 微微脉冲 */
+.toast.warning {
+  background: linear-gradient(135deg, #6b1f1f 0%, #3a0f0f 100%);
+  border: 1.5px solid #ff5757;
+  color: #ffeaea;
+  box-shadow: 0 4px 18px rgba(255, 87, 87, 0.35), inset 0 0 12px rgba(255, 87, 87, 0.15);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  animation: warning-pulse 1.2s ease-in-out infinite;
+}
+@keyframes warning-pulse {
+  0%, 100% { box-shadow: 0 4px 18px rgba(255, 87, 87, 0.35), inset 0 0 12px rgba(255, 87, 87, 0.15); }
+  50% { box-shadow: 0 4px 22px rgba(255, 87, 87, 0.55), inset 0 0 18px rgba(255, 87, 87, 0.25); }
+}
 .modal-total {
   text-align: right;
   font-size: 14px;

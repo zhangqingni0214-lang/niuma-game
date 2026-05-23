@@ -251,6 +251,12 @@ function applyEffects(effects, ctx) {
     adj.stress = Math.ceil(adj.stress / 2);
   }
 
+  // v0.9.6 全局难度调节 - 给玩家活路（不破坏单事件的相对设计）
+  // 模拟器数据显示：salary 负向累积过快导致 70%+ 玩家 day-5 前被开除
+  if (adj.salary && adj.salary < 0)   adj.salary  = Math.ceil(adj.salary * 0.7);
+  if (adj.fatigue && adj.fatigue > 0) adj.fatigue = Math.ceil(adj.fatigue * 0.8);
+  if (adj.health && adj.health < 0)   adj.health  = Math.ceil(adj.health * 0.8);
+
   const oldHealth = state.stats.health;
 
   // 每次选项前清空上次扣款明细
@@ -269,8 +275,10 @@ function applyEffects(effects, ctx) {
   }
 
   // 怼老板扣月薪：snark 选项扣月薪的 2.5%（四舍五入到百元）
+  // v0.9.6 小马专属：罚款 ×0.8（社畜里的小老板娘，骂得起）
   if (choice?.snark) {
-    const fine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+    let fine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+    if (state.character === 'horse') fine = Math.round(fine * 0.8 / 100) * 100;
     if (fine > 0) {
       state.money -= fine;
       state.snarkFine = (state.snarkFine || 0) + fine;
@@ -460,7 +468,10 @@ function pickQuip(costs) {
 const _toastQueue = [];
 let _toastShowing = false;
 function showToast(text, duration = 1800) {
-  _toastQueue.push({ text, duration });
+  // v0.9.6: ⚠️ 开头自动识别为警告，加 warning 样式 + 延长停留
+  const isWarning = typeof text === 'string' && text.startsWith('⚠️');
+  if (isWarning && duration < 2800) duration = 2800;
+  _toastQueue.push({ text, duration, isWarning });
   if (!_toastShowing) _renderNextToast();
 }
 function _renderNextToast() {
@@ -468,8 +479,9 @@ function _renderNextToast() {
   if (!el) return;
   if (_toastQueue.length === 0) { _toastShowing = false; return; }
   _toastShowing = true;
-  const { text, duration } = _toastQueue.shift();
+  const { text, duration, isWarning } = _toastQueue.shift();
   el.textContent = text;
+  el.classList.toggle('warning', !!isWarning);
   el.classList.remove('hidden');
   void el.offsetWidth;
   el.classList.add('show');
@@ -670,6 +682,10 @@ function advanceTime() {
     if (state.profile.jobId === 'team_lead') {
       state.stats.fatigue = clamp(state.stats.fatigue + 4, 0, 100);
       state.stats.stress = clamp(state.stats.stress + 3, 0, 100);
+    }
+    // v0.9.6 小牛专属：每天健康 +1（身体好，扛得住）
+    if (state.character === 'ox') {
+      state.stats.health = clamp(state.stats.health + 1, 0, 100);
     }
 
     // Day 3 绩效结算（原 Day 7，v0.9 调整为提前到 Day 3 节奏更紧）

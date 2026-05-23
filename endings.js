@@ -8,10 +8,10 @@ window.ENDINGS = [
   {
     id: 'overwork_death',
     name: '过劳猝死',
-    trigger: '疲劳 ≥ 95 且健康 ≤ 30 — 身体先垮了',
+    trigger: '疲劳 ≥ 85 且健康 ≤ 35 — 身体先垮了',
     summary: '体检报告里那行红字应验了。同事在你工位上点了一支烟，HR 在群里发了"沉痛悼念"，又撤回。',
     priority: 100,
-    condition: (s, ctx) => s.fatigue >= 95 && s.health <= 30
+    condition: (s, ctx) => s.fatigue >= 85 && s.health <= 35
   },
   {
     id: 'mental_collapse',
@@ -24,18 +24,18 @@ window.ENDINGS = [
   {
     id: 'fired_with_honor',
     name: '被开除·但走得有尊严',
-    trigger: '工资分 ≤ 18 且心情 ≥ 60 — 被开了，但你心里痛快',
+    trigger: '怼 ≥ 7 次 + 工资分 ≤ 15 + 心情 ≥ 80 + 第 4 天后 — 嘴硬把自己嘴没了，但走得有尊严',
     summary: 'HR 拿着解约书，你拿着两个月工资截图、加班记录、和老板朋友圈那个意味深长的赞。你笑着签字，临走前把工位上的小绿植带走了，顺便把茶水间最后一包速溶咖啡也拿了。',
     priority: 85,
-    condition: (s, ctx) => s.salary <= 18 && s.mood >= 60
+    condition: (s, ctx) => (ctx.snarkCount || 0) >= 7 && s.salary <= 15 && s.mood >= 80 && ctx.day >= 4
   },
   {
     id: 'optimized',
     name: '被优化',
-    trigger: '工资分 ≤ 10 — 老板觉得你"不值这个钱"了',
+    trigger: '工资分 ≤ 8 — 老板觉得你"不值这个钱"了',
     summary: 'HR 约你"聊一聊"。一杯水还没喝完，你已经签了 N+1。出门时她还说"未来一定常联系"。这是她今年说的第 47 次这句话。',
     priority: 80,
-    condition: (s, ctx) => s.salary <= 10
+    condition: (s, ctx) => s.salary <= 8
   },
   {
     id: 'era_abandoned',
@@ -56,10 +56,10 @@ window.ENDINGS = [
   {
     id: 'depression',
     name: '陷入抑郁',
-    trigger: '第 5 天后心情 ≤ 10 — 不是矫情，是真的不想动了',
+    trigger: '第 4 天后心情 ≤ 15 — 不是矫情，是真的不想动了',
     summary: '你周一早上醒来，看着天花板，发现自己一动也不想动。医生建议你休息三个月。你的工位三天后换了人。',
     priority: 50,
-    condition: (s, ctx) => s.mood <= 10 && ctx.day >= 5
+    condition: (s, ctx) => s.mood <= 15 && ctx.day >= 4
   },
   {
     id: 'side_hustle_win',
