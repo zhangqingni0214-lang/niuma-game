@@ -66,10 +66,20 @@ class SFXEngine {
   //   结局可单独传 3s 让更慢一点
   playBGM(name, crossfadeSeconds = 2.0) {
     if (!this._enabled) return;
-    if (this._bgmName === name && this._bgmEl) return;
 
-    // 旧的同步淡出（等长 crossfade）
-    this.stopBGM(crossfadeSeconds);
+    // v0.9.11 修 bug：首次进菜单时 renderMenu 调 playBGM('menu')，
+    // 但浏览器 autoplay 策略导致 el.play() 失败，el 处于 paused。
+    // _bgmName 已被设为 'menu'，下次再调 playBGM('menu')（首次点击后的 kickBGM）
+    // 会因"已在播 menu"早返回，BGM 永远起不来。
+    // 修：检查 el 是否真在播；paused 时丢弃旧引用重来。
+    if (this._bgmName === name && this._bgmEl && !this._bgmEl.paused) return;
+    if (this._bgmEl && this._bgmEl.paused) {
+      // 之前一次失败的 attempt，直接丢弃，不需要 crossfade
+      this._bgmEl = null;
+      this._bgmName = null;
+    } else {
+      this.stopBGM(crossfadeSeconds);
+    }
 
     const url = BGM_PATHS[name];
     if (!url) return;
