@@ -132,10 +132,66 @@ function policySnarky(ev) {
   return policyRandom(ev);
 }
 
+// v0.9.7 救援机制 - 模拟玩家"用钱救命"
+// 全场只能救援一次（_rescuedOnce）
+const RESCUE_OPTIONS_SIM = {
+  fatigue80: [
+    { cost: 400, costType: null, effects: { fatigue: -18, mood: +3 } },
+    { cost: 100, costType: null, effects: { fatigue: -10 } },
+    { cost: 0, costType: 'daily_wage', effects: { fatigue: -25 } },
+  ],
+  stress80: [
+    { cost: 800, costType: null, effects: { stress: -22, mood: +6 } },
+    { cost: 200, costType: null, effects: { stress: -14, mood: +5, health: -4 } },
+    { cost: 0, costType: null, effects: { stress: -8, salary: -10 } },
+  ],
+  health35: [
+    { cost: 1000, costType: null, effects: { health: +28 } },
+    { cost: 200,  costType: null, effects: { health: +12 } },
+    { cost: 0,    costType: null, effects: {} },
+  ],
+  mood25: [
+    { cost: 1500, costType: null, effects: { mood: +30, health: +10, fatigue: -8, salary: -3 } },
+    { cost: 80,   costType: null, effects: { mood: +10 } },
+    { cost: 50,   costType: null, effects: { mood: +15, fatigue: +5 } },
+  ],
+};
+
+// 模拟玩家的救援决策：看哪个属性最危险，选自己买得起且最优的选项
+function maybeRescue(state) {
+  if (state._rescuedOnce) return;
+  const s = state.stats;
+  let trigger = null;
+  if (s.fatigue >= 80) trigger = 'fatigue80';
+  else if (s.stress >= 80) trigger = 'stress80';
+  else if (s.health <= 35) trigger = 'health35';
+  else if (s.mood <= 25) trigger = 'mood25';
+  if (!trigger) return;
+
+  const opts = RESCUE_OPTIONS_SIM[trigger];
+  const dailyWage = Math.round((state.salaryAmount || 0) / 22);
+  // 计算可负担 + 效果"最佳"的选项
+  const affordable = opts.filter(o => {
+    const cost = o.costType === 'daily_wage' ? dailyWage : o.cost;
+    return state.money >= cost;
+  });
+  if (affordable.length === 0) return;
+  // 简单策略：选第一个能救主属性的（贵但有效）
+  const chosen = affordable[0];
+  const cost = chosen.costType === 'daily_wage' ? dailyWage : chosen.cost;
+  state.money -= cost;
+  for (const [k, v] of Object.entries(chosen.effects)) {
+    if (state.stats[k] !== undefined) {
+      state.stats[k] = clamp(state.stats[k] + v, 0, 100);
+    }
+  }
+  state._rescuedOnce = true;
+}
+
 // ============================================================
 // 单局
 // ============================================================
-function simulateOne(charId, jobId, policy) {
+function simulateOne(charId, jobId, policy, withRescue) {
   const character = W.CHARACTERS.find(c => c.id === charId);
   const job = W.JOBS.find(j => j.id === jobId);
   const stats = { ...job.baseStats };
@@ -153,6 +209,8 @@ function simulateOne(charId, jobId, policy) {
     seenEventIds: [],
     character: charId,
     profile: { jobId },
+    rescue: !!withRescue,
+    _rescuedOnce: false,
   };
 
   let ending = null;
@@ -194,28 +252,31 @@ function simulateOne(charId, jobId, policy) {
       }
     }
     ending = checkEnding(state);
+    if (!ending && state.rescue) maybeRescue(state);
   }
   if (!ending) ending = W.ENDINGS.find(e => e.id === 'survival');
-  return { ending: ending.id, day: state.day, stats: { ...state.stats }, money: state.money };
+  return { ending: ending.id, day: state.day, stats: { ...state.stats }, money: state.money, rescued: !!state._rescuedOnce };
 }
 
 // ============================================================
 // 批量跑
 // ============================================================
-function run(label, charId, jobId, policy, runs) {
+function run(label, charId, jobId, policy, runs, withRescue=false) {
   const dist = {}, days = [];
   let totalStats = { health: 0, stress: 0, mood: 0, fatigue: 0, skill: 0, salary: 0 };
-  let totalMoney = 0;
+  let totalMoney = 0, rescuedCount = 0;
   for (let i = 0; i < runs; i++) {
-    const r = simulateOne(charId, jobId, policy);
+    const r = simulateOne(charId, jobId, policy, withRescue);
     dist[r.ending] = (dist[r.ending] || 0) + 1;
     days.push(r.day);
     for (const k in totalStats) totalStats[k] += r.stats[k];
     totalMoney += r.money;
+    if (r.rescued) rescuedCount++;
   }
   const avgDay = (days.reduce((a,b)=>a+b,0) / runs).toFixed(1);
   const sorted = Object.entries(dist).sort((a,b) => b[1]-a[1]);
-  console.log(`\n[${label}]  avg存活 ${avgDay} 天  avg存款 ¥${(totalMoney/runs).toFixed(0)}`);
+  const rescuedRate = withRescue ? `  救援率 ${(rescuedCount/runs*100).toFixed(0)}%` : '';
+  console.log(`\n[${label}]  avg存活 ${avgDay} 天  avg存款 ¥${(totalMoney/runs).toFixed(0)}${rescuedRate}`);
   for (const [k, v] of sorted) {
     console.log(`  ${k.padEnd(24)} ${String(v).padStart(4)} (${(v/runs*100).toFixed(1)}%)`);
   }
@@ -239,3 +300,6 @@ for (const [label, c, j] of setups) run(label, c, j, policyBalanced, RUNS);
 
 console.log('\n========== 策略 C：偏爱怼回去（70% snark） ==========');
 for (const [label, c, j] of setups) run(label, c, j, policySnarky, RUNS);
+
+console.log('\n========== 策略 D：保护虚弱属性 + 会自救（最贴近真实玩家） ==========');
+for (const [label, c, j] of setups) run(label, c, j, policyBalanced, RUNS, true);

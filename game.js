@@ -739,6 +739,7 @@ function checkEnding() {
 // =====================
 
 // 救援弹窗 - 4 类可花钱干预的危险态
+// v0.9.7：全场只能救援一次（_rescuedOnce 锁），价格上调让"救命"成为真决策
 const RESCUE_WARNINGS = [
   {
     key: 'fatigue80',
@@ -746,9 +747,9 @@ const RESCUE_WARNINGS = [
     title: '⚠️ 疲劳爆表了',
     desc: '你已经好几天没好好睡过觉，眼皮一直跳。要不要花点钱缓一缓？',
     options: [
-      { icon: '💆', label: '去按摩店深度放松一晚',         cost: 200, effects: { fatigue: -18, mood: +3 } },
-      { icon: '🍱', label: '叫高级外卖 + 早睡',           cost: 80,  effects: { fatigue: -10 } },
-      { icon: '🛏', label: '请假一天躺尸',               cost: 0,   effects: { fatigue: -25, salary: -3 } },
+      { icon: '💆', label: '去按摩店深度放松一晚',  cost: 400,            effects: { fatigue: -18, mood: +3 } },
+      { icon: '🍱', label: '叫高级外卖 + 早睡',     cost: 100,            effects: { fatigue: -10 } },
+      { icon: '🛏', label: '请假一天躺尸',         costType: 'daily_wage', effects: { fatigue: -25 } },
     ]
   },
   {
@@ -757,9 +758,9 @@ const RESCUE_WARNINGS = [
     title: '⚠️ 压力快撑不住了',
     desc: '梦里全是 PPT 和会议。要不要花点钱泄一下洪？',
     options: [
-      { icon: '🧠', label: '约心理咨询师 1 小时',         cost: 500, effects: { stress: -22, mood: +6 } },
-      { icon: '🍻', label: '约朋友撸串喝啤酒',           cost: 150, effects: { stress: -14, mood: +5, health: -4 } },
-      { icon: '🏠', label: '装病假在家闭关一天',          cost: 0,   effects: { stress: -18, salary: -3 } },
+      { icon: '🧠', label: '约心理咨询师 1 小时', cost: 800, effects: { stress: -22, mood: +6 } },
+      { icon: '🍻', label: '约朋友撸串喝啤酒',   cost: 200, effects: { stress: -14, mood: +5, health: -4 } },
+      { icon: '🏠', label: '装病假在家闭关一天',  cost: 0,   effects: { stress: -8, salary: -10 } },
     ]
   },
   {
@@ -768,9 +769,9 @@ const RESCUE_WARNINGS = [
     title: '⚠️ 健康亮红灯了',
     desc: '体检报告里那行红字越来越大，再拖会真出事。',
     options: [
-      { icon: '🏥', label: '三甲医院全套检查 + 调理',     cost: 800, effects: { health: +28 } },
-      { icon: '💊', label: '社区医院开点药 + 多休息',     cost: 200, effects: { health: +12 } },
-      { icon: '😶', label: '自己扛过去',                cost: 0,   effects: {} },
+      { icon: '🏥', label: '三甲医院全套检查 + 调理', cost: 1000, effects: { health: +28 } },
+      { icon: '💊', label: '社区医院开点药 + 多休息',  cost: 200,  effects: { health: +12 } },
+      { icon: '😶', label: '自己扛过去',             cost: 0,    effects: {} },
     ]
   },
   {
@@ -779,9 +780,9 @@ const RESCUE_WARNINGS = [
     title: '⚠️ 心情低到谷底',
     desc: '已经一周没真心笑过了。给自己一点光？',
     options: [
-      { icon: '✈️', label: '请年假 + 短途旅行',          cost: 600, effects: { mood: +30, fatigue: -8, salary: -3 } },
-      { icon: '🎬', label: '一个人去看场电影',           cost: 80,  effects: { mood: +14 } },
-      { icon: '💬', label: '约朋友吐槽一整晚',           cost: 50,  effects: { mood: +20, fatigue: +3 } },
+      { icon: '✈️', label: '请年假 + 短途旅行', cost: 1500, effects: { mood: +30, health: +10, fatigue: -8, salary: -3 } },
+      { icon: '🎬', label: '一个人去看场电影',   cost: 80,   effects: { mood: +10 } },
+      { icon: '💬', label: '约朋友吐槽一整晚',   cost: 50,   effects: { mood: +15, fatigue: +5 } },
     ]
   },
 ];
@@ -807,13 +808,16 @@ function checkWarnings() {
     }
   }
 
-  // 救援弹窗类 - 收集队列，按先后顺序弹出
+  // 救援弹窗类 - v0.9.7: 全场只能救一次（_rescuedOnce 锁）
+  // 跳过不锁全场，但锁当前 key（避免反复弹同一个）
+  if (state._rescuedOnce) return;
   const queue = [];
   for (const w of RESCUE_WARNINGS) {
     if (state._warnedFlags[w.key]) continue;
     if (w.when(s, h)) {
       state._warnedFlags[w.key] = true;
       queue.push(w);
+      break; // 一次只弹一个，玩家选完后 _rescuedOnce 锁住后续
     }
   }
   if (queue.length > 0) showRescueQueue(queue);
@@ -827,6 +831,14 @@ function showRescueQueue(queue) {
 
 const STAT_NAMES = { health:'健康', stress:'压力', mood:'心情', fatigue:'疲劳', skill:'技能', salary:'工资分' };
 
+// 计算 cost - 支持 'daily_wage' 动态价
+function resolveCost(opt) {
+  if (opt.costType === 'daily_wage') {
+    return Math.round((state.salaryAmount || 0) / 22);
+  }
+  return opt.cost || 0;
+}
+
 function showRescueModal(warning, onDone) {
   $('#rescue-title').textContent = warning.title;
   $('#rescue-desc').textContent = warning.desc;
@@ -834,18 +846,26 @@ function showRescueModal(warning, onDone) {
   optsEl.innerHTML = '';
 
   warning.options.forEach(opt => {
-    const affordable = state.money >= opt.cost;
+    const cost = resolveCost(opt);
+    const affordable = state.money >= cost;
     const div = document.createElement('div');
     div.className = 'rescue-option' + (affordable ? '' : ' disabled');
 
     // 拼接 effects 文字
     const parts = [];
-    if (opt.cost > 0) parts.push(`<span class="rescue-cost">−¥${opt.cost}</span>`);
-    else parts.push('<span class="rescue-free">免费</span>');
+    if (cost > 0) {
+      const label = opt.costType === 'daily_wage'
+        ? `−¥${cost} <span style="opacity:0.7;font-size:11px">(扣 1 天日薪)</span>`
+        : `−¥${cost}`;
+      parts.push(`<span class="rescue-cost">${label}</span>`);
+    } else {
+      parts.push('<span class="rescue-free">免费</span>');
+    }
 
     for (const [k, v] of Object.entries(opt.effects)) {
       const name = STAT_NAMES[k] || k;
       const sign = v > 0 ? '+' : '';
+      // 减压减疲劳是好事（gain 绿），加压加疲劳是坏事（loss 橙）
       const cls = ['stress','fatigue'].includes(k)
         ? (v < 0 ? 'rescue-gain' : 'rescue-loss')
         : (v > 0 ? 'rescue-gain' : 'rescue-loss');
@@ -862,19 +882,20 @@ function showRescueModal(warning, onDone) {
       div.onclick = () => {
         if (window.SFX) SFX.play('choice_select');
         // 扣钱
-        if (opt.cost > 0) {
-          state.money -= opt.cost;
-          showMoneyToast(-opt.cost, '紧急救援');
+        if (cost > 0) {
+          state.money -= cost;
+          showMoneyToast(-cost, '紧急救援');
         }
-        // 应用 effects（手动 clamp，不走 applyEffects 因为不算事件选项）
+        // 应用 effects
         for (const [k, v] of Object.entries(opt.effects)) {
           if (state.stats[k] !== undefined) {
             state.stats[k] = clamp(state.stats[k] + v, 0, 100);
           }
         }
+        // v0.9.7: 选择即锁定全场救援次数
+        state._rescuedOnce = true;
         $('#rescue-modal').classList.add('hidden');
         saveState();
-        // 刷新游戏页 UI（如果当前在游戏页）
         if (typeof renderGame === 'function' && state && !state.ended) renderGame();
         if (onDone) onDone();
       };
@@ -885,6 +906,7 @@ function showRescueModal(warning, onDone) {
 
   $('#rescue-skip').onclick = () => {
     if (window.SFX) SFX.play('back');
+    // 跳过不锁 _rescuedOnce，下次别的 warning 还能弹
     $('#rescue-modal').classList.add('hidden');
     if (onDone) onDone();
   };
