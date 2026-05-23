@@ -706,12 +706,48 @@ function checkEnding() {
     day: state.day,
     character: state.character,
     job: state.profile.jobId,
-    snarkCount: state.history.snarkCount
+    snarkCount: state.history.snarkCount,
+    sideHustleCount: state.history.sideHustleCount
   };
   for (const ending of [...window.ENDINGS].sort((a, b) => b.priority - a.priority)) {
     if (ending.condition(state.stats, ctx)) return ending;
   }
   return null;
+}
+
+// =====================
+// v0.9.4 濒死预警 - 在状态进入危险区时发 toast 提醒
+// 每种警告只触发一次（用 _warnedFlags 记录）
+// =====================
+const WARNINGS = [
+  { key: 'fatigue80', when: (s, h) => s.fatigue >= 80,
+    msg: '⚠️ 疲劳爆表了，再不休息会出事' },
+  { key: 'stress80', when: (s, h) => s.stress >= 80,
+    msg: '⚠️ 压力快撑不住了' },
+  { key: 'health35', when: (s, h) => s.health <= 35,
+    msg: '⚠️ 健康亮红灯了，注意身体' },
+  { key: 'mood25', when: (s, h) => s.mood <= 25,
+    msg: '⚠️ 心情低到谷底了' },
+  { key: 'salary20', when: (s, h) => s.stats?.salary <= 20 || (s.salary !== undefined && s.salary <= 20),
+    msg: '⚠️ 工资分跌得太狠，老板要动手了' },
+  { key: 'money_low', when: (s, h) => s.money !== undefined && s.money <= -100,
+    msg: '⚠️ 存款见底，再花点就破产了' },
+  { key: 'snark6', when: (s, h) => (h?.snarkCount || 0) >= 6,
+    msg: '⚠️ 你怼老板第 6 次了，HR 在盯着' },
+];
+
+function checkWarnings() {
+  if (!state._warnedFlags) state._warnedFlags = {};
+  // 把 money 也塞进 s 上下文方便统一判断
+  const s = { ...state.stats, money: state.money };
+  const h = state.history;
+  for (const w of WARNINGS) {
+    if (state._warnedFlags[w.key]) continue;
+    if (w.when(s, h)) {
+      state._warnedFlags[w.key] = true;
+      showToast(w.msg, 2400);
+    }
+  }
 }
 
 function statusLabel() {
@@ -988,6 +1024,7 @@ function nextStep() {
   advanceTime();
   const ending = checkEnding();
   if (ending) return showEnding(ending);
+  checkWarnings();
   saveState();
   renderGame();
 }

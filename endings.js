@@ -8,10 +8,10 @@ window.ENDINGS = [
   {
     id: 'overwork_death',
     name: '过劳猝死',
-    trigger: '疲劳 ≥ 100 且健康 ≤ 25 — 身体先垮了',
+    trigger: '疲劳 ≥ 95 且健康 ≤ 30 — 身体先垮了',
     summary: '体检报告里那行红字应验了。同事在你工位上点了一支烟，HR 在群里发了"沉痛悼念"，又撤回。',
     priority: 100,
-    condition: (s, ctx) => s.fatigue >= 100 && s.health <= 25
+    condition: (s, ctx) => s.fatigue >= 95 && s.health <= 30
   },
   {
     id: 'mental_collapse',
@@ -24,10 +24,10 @@ window.ENDINGS = [
   {
     id: 'fired_with_honor',
     name: '被开除·但走得有尊严',
-    trigger: '工资分 ≤ 15 但心情 ≥ 70 — 被开了，但你心里痛快',
+    trigger: '工资分 ≤ 18 且心情 ≥ 60 — 被开了，但你心里痛快',
     summary: 'HR 拿着解约书，你拿着两个月工资截图、加班记录、和老板朋友圈那个意味深长的赞。你笑着签字，临走前把工位上的小绿植带走了，顺便把茶水间最后一包速溶咖啡也拿了。',
     priority: 85,
-    condition: (s, ctx) => s.salary <= 15 && s.mood >= 70
+    condition: (s, ctx) => s.salary <= 18 && s.mood >= 60
   },
   {
     id: 'optimized',
@@ -64,28 +64,28 @@ window.ENDINGS = [
   {
     id: 'side_hustle_win',
     name: '副业反超·辞职自雇',
-    trigger: '第 10 天后存款 ≥ ¥5000 — 副业反超主业了',
+    trigger: '第 10 天后存款 ≥ ¥4000 且副业行动 ≥ 2 次 — 副业反超主业了',
     summary: '副业收入连续三个月超过主业，你递了辞职信。HR 问你下一站，你说"自雇"。她沉默了。三个月后你的小红书账号 5w 粉。',
     priority: 75,
-    condition: (s, ctx) => ctx.day >= 10 && s.money >= 5000
+    condition: (s, ctx) => ctx.day >= 10 && s.money >= 4000 && (ctx.sideHustleCount || 0) >= 2
   },
   // 角色专属：小马 - 拍桌裸辞
   {
     id: 'horse_slam_quit',
     name: '拍桌裸辞·走得潇洒',
-    trigger: '小马 + 怼 ≥ 5 次 + 压力 ≥ 70 + 第 5 天后 — 你忍够了',
+    trigger: '小马 + 怼 ≥ 8 次 + 压力 ≥ 80 + 第 7 天后 — 你真的忍够了',
     summary: '你站起来，把工牌摔在 HR 桌上，"我自己走，N+1 我不要，我只要明天不上班。" HR 愣了两秒，"那也要交接……" 你已经下楼了。下楼的电梯里你哭了，但脸是笑的。',
     priority: 95,
-    condition: (s, ctx) => ctx.character === 'horse' && (ctx.snarkCount || 0) >= 5 && s.stress >= 70 && ctx.day >= 5
+    condition: (s, ctx) => ctx.character === 'horse' && (ctx.snarkCount || 0) >= 8 && s.stress >= 80 && ctx.day >= 7
   },
   // 角色专属：小牛 - 被劳损拍拍损
   {
     id: 'ox_loyal_collapsed',
     name: '老实人之死·公司发了讣告',
-    trigger: '小牛 + 疲劳 ≥ 95 + 工资分 ≥ 50 — 越认真死得越早',
+    trigger: '小牛 + 疲劳 ≥ 90 + 工资分 ≥ 50 — 越认真死得越早',
     summary: '你倒在工位上的时候，是周五下午五点。同事说"他刚发了周报"。HR 在群里发了"沉痛悼念"，配图是你抱着电脑的微笑工牌照。老板朋友圈转发，配文："这才是真正的奋斗者。"',
     priority: 95,
-    condition: (s, ctx) => ctx.character === 'ox' && s.fatigue >= 95 && s.salary >= 50
+    condition: (s, ctx) => ctx.character === 'ox' && s.fatigue >= 90 && s.salary >= 50
   },
   // HR 专属：被自己优化
   {

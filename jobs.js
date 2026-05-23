@@ -9,7 +9,8 @@ window.CHARACTERS = [
     description: '骨子里不服，怼起人来一套一套，但下了班还是要交房租。',
     statOffset: { stress: +5, mood: +5 },
     traits: {
-      snarkBonus: { mood: +2, stress: -2 },
+      // v0.9.4 平衡调整：减弱怼回去的爽快加成（之前 mood+2/stress-2 让小马怼到爽不累）
+      snarkBonus: { mood: +1, stress: -1 },
       submissivePenalty: { mood: -3 }
     }
   },
