@@ -1097,7 +1097,8 @@ function renderInvestiture(step = 'character') {
 // 游戏主页面
 // =====================
 function renderGame() {
-  if (window.SFX) SFX.playBGM('game');
+  // 0.6s fadeIn：进游戏屏要"立刻"有音乐感，菜单/结局保持 2s 慢渐入
+  if (window.SFX) SFX.playBGM('game', 0.6);
   // Day 7 绩效通知优先弹出
   if (state.pendingBonusModal) {
     const data = state.pendingBonusModal;
@@ -1433,7 +1434,12 @@ window.addEventListener('DOMContentLoaded', () => {
   loadArchive();
 
   $('#btn-start').onclick = () => {
-    if (window.SFX) SFX.play('choice_select');
+    if (window.SFX) {
+      SFX.play('choice_select');
+      // 进投胎页就开始预载游戏 BGM，等玩家挑完性格/岗位（通常 5-10s），
+      // game.mp3 已经在缓存里，切游戏屏时 playBGM 几乎零延迟
+      SFX.preloadBGM('game');
+    }
     if (hasSave()) {
       if (!confirm('上一只牛马还没死透，重新投胎会覆盖。继续？')) return;
       clearState();
@@ -1443,7 +1449,10 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   $('#btn-continue').onclick = () => {
-    if (window.SFX) SFX.play('click');
+    if (window.SFX) {
+      SFX.play('click');
+      SFX.preloadBGM('game'); // 继续存档路径也预载一次（虽然紧接 renderGame，但起码并发起来）
+    }
     if (loadState()) renderGame(); else alert('没有上次怼到一半的牛马。');
   };
 

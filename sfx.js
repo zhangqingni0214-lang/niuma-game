@@ -132,6 +132,22 @@ class SFXEngine {
     tick();
   }
 
+  // 提前缓存 BGM 文件，避免首次 playBGM 时网络/解码延迟造成空白。
+  // 用法：在切场之前 5-10 秒调一次，比如进投胎页就 preloadBGM('game')。
+  // 同一 name 多次调用是幂等的（已缓存就直接返回）。
+  preloadBGM(name) {
+    this._preloaded = this._preloaded || {};
+    if (this._preloaded[name]) return;
+    const url = BGM_PATHS[name];
+    if (!url) return;
+    const el = new Audio();
+    el.preload = 'auto';
+    el.src = url;
+    // 不调 play()，浏览器仍会按 preload="auto" 下载并解码
+    el.load();
+    this._preloaded[name] = el;
+  }
+
   // Debug 用：依次播放全部 15 个音效，控制台调用 SFX.previewAll()
   previewAll(gap = 800) {
     const names = Object.keys(PRESETS);
