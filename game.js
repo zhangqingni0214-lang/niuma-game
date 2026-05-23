@@ -726,6 +726,7 @@ function renderMenu() {
     : '尚未投胎，准备开怼。';
   $('#menu-karma').textContent = `业力 ${archive.karma}`;
   showScreen('screen-menu');
+  if (window.SFX) SFX.playBGM('menu');
 }
 
 // =====================
@@ -754,6 +755,7 @@ function renderInvestiture(step = 'character') {
         <div class="char-desc">${c.description}</div>
       `;
       card.onclick = () => {
+        if (window.SFX) SFX.play('choice_select');
         investiture.character = c.id;
         renderInvestiture('character');
       };
@@ -778,6 +780,7 @@ function renderInvestiture(step = 'character') {
       `;
       if (unlocked) {
         card.onclick = () => {
+          if (window.SFX) SFX.play('choice_select');
           investiture.jobId = j.id;
           renderInvestiture('job');
         };
@@ -795,6 +798,7 @@ function renderInvestiture(step = 'character') {
 // 游戏主页面
 // =====================
 function renderGame() {
+  if (window.SFX) SFX.playBGM('game');
   // Day 7 绩效通知优先弹出
   if (state.pendingBonusModal) {
     const data = state.pendingBonusModal;
@@ -918,7 +922,7 @@ function nextStep() {
 function showEnding(ending) {
   if (window.SFX) {
     SFX.play(ending.id === 'survival' ? 'survive' : 'death');
-    SFX.stopBGM();
+    SFX.playBGM('ending');
   }
   finalizeLife(ending);
   $('#ending-name').textContent = ending.name;
@@ -1122,6 +1126,7 @@ window.addEventListener('DOMContentLoaded', () => {
   loadArchive();
 
   $('#btn-start').onclick = () => {
+    if (window.SFX) SFX.play('choice_select');
     if (hasSave()) {
       if (!confirm('上一只牛马还没死透，重新投胎会覆盖。继续？')) return;
       clearState();
@@ -1131,20 +1136,22 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   $('#btn-continue').onclick = () => {
+    if (window.SFX) SFX.play('click');
     if (loadState()) renderGame(); else alert('没有上次怼到一半的牛马。');
   };
 
-  $('#btn-archive').onclick = () => renderArchive('lives');
-  $('#btn-skills').onclick  = renderSkillTree;
-  $('#btn-back-menu').onclick = renderMenu;
-  $('#archive-back').onclick  = renderMenu;
-  $('#skills-back').onclick   = renderMenu;
-  $('#ending-back').onclick   = renderMenu;
+  $('#btn-archive').onclick = () => { if (window.SFX) SFX.play('click'); renderArchive('lives'); };
+  $('#btn-skills').onclick  = () => { if (window.SFX) SFX.play('click'); renderSkillTree(); };
+  $('#btn-back-menu').onclick = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
+  $('#archive-back').onclick  = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
+  $('#skills-back').onclick   = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
+  $('#ending-back').onclick   = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
   $('#ending-replay').onclick = () => {
+    if (window.SFX) SFX.play('choice_select');
     investiture = { character: null, jobId: null };
     renderInvestiture('character');
   };
-  $('#ending-to-skills').onclick = renderSkillTree;
+  $('#ending-to-skills').onclick = () => { if (window.SFX) SFX.play('click'); renderSkillTree(); };
 
   // 分享卡片
   $('#ending-share').onclick = () => {
@@ -1176,16 +1183,18 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // 投胎导航
-  $('#inv-next-job').onclick = () => renderInvestiture('job');
-  $('#inv-back-char').onclick = () => renderInvestiture('character');
-  $('#inv-cancel').onclick = renderMenu;
+  $('#inv-next-job').onclick = () => { if (window.SFX) SFX.play('choice_select'); renderInvestiture('job'); };
+  $('#inv-back-char').onclick = () => { if (window.SFX) SFX.play('back'); renderInvestiture('character'); };
+  $('#inv-cancel').onclick = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
   $('#inv-start').onclick = () => {
     if (!investiture.character || !investiture.jobId) return;
+    if (window.SFX) SFX.play('skill_choice');  // 投胎仪式感，用紫色技能音
     newGame(investiture.character, investiture.jobId);
     renderGame();
   };
 
   $('#btn-destroy').onclick = () => {
+    if (window.SFX) SFX.play('click');
     if (!confirm('销毁前世会清空所有轮回、技能、业力。从头做牛马？')) return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ARCHIVE_KEY);
@@ -1198,4 +1207,18 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   renderMenu();
+
+  // 浏览器自动播放策略：首次进入页面时 BGM 会被拦截，
+  // 注册一次性点击监听，用户第一次点任何地方就启动当前屏幕的 BGM。
+  const kickBGM = () => {
+    if (!window.SFX) return;
+    const active = document.querySelector('.screen.active')?.id;
+    if (active === 'screen-game') SFX.playBGM('game');
+    else if (active === 'screen-ending') SFX.playBGM('ending');
+    else SFX.playBGM('menu');
+    document.removeEventListener('click', kickBGM);
+    document.removeEventListener('touchstart', kickBGM);
+  };
+  document.addEventListener('click', kickBGM, { once: false });
+  document.addEventListener('touchstart', kickBGM, { once: false });
 });
