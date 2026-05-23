@@ -58,12 +58,19 @@ class SFXEngine {
     }
   }
 
-  // v0.9.8: playBGM 支持 fadeIn 秒数（默认 1.5s）
-  // 结局页特别要求 3s 缓慢渐入
-  playBGM(name, fadeInSeconds = 1.5) {
+  // v0.9.9 真正的 crossfade：
+  //   旧 BGM 和 新 BGM 在同一段时间内同时进行，
+  //   使用 sin/cos 等响度曲线，中点感受总响度恒定，没有"凹"
+  //
+  //   crossfadeSeconds：默认 2s（菜单/游戏/结局通用）
+  //   结局可单独传 3s 让更慢一点
+  playBGM(name, crossfadeSeconds = 2.0) {
     if (!this._enabled) return;
     if (this._bgmName === name && this._bgmEl) return;
-    this.stopBGM(0.4); // 切换时旧 BGM 0.4s 淡出
+
+    // 旧的同步淡出（等长 crossfade）
+    this.stopBGM(crossfadeSeconds);
+
     const url = BGM_PATHS[name];
     if (!url) return;
     const targetVolume = 0.18;
@@ -74,23 +81,22 @@ class SFXEngine {
     this._bgmEl = el;
     this._bgmName = name;
 
-    if (fadeInSeconds <= 0) {
+    if (crossfadeSeconds <= 0) {
       el.volume = targetVolume;
       return;
     }
+
+    // 等响度曲线 fade in：sin(t·π/2) — 中点 0.707（人耳感受 -3dB）
     const startTime = Date.now();
-    const duration = fadeInSeconds * 1000;
+    const duration = crossfadeSeconds * 1000;
     const tick = () => {
-      // 如果在淡入期间被切换/停止，停止 ramp
       if (!this._bgmEl || this._bgmEl !== el) return;
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // 使用 ease-out 让感受更自然（前快后慢，更早能听到）
-      const eased = 1 - Math.pow(1 - progress, 2);
-      el.volume = targetVolume * eased;
-      if (progress < 1) setTimeout(tick, 60);
+      el.volume = targetVolume * Math.sin(progress * Math.PI / 2);
+      if (progress < 1) setTimeout(tick, 50);
     };
-    setTimeout(tick, 60);
+    tick();
   }
 
   stopBGM(fadeOutSeconds = 0) {
@@ -102,14 +108,15 @@ class SFXEngine {
       el.pause();
       return;
     }
+    // 等响度曲线 fade out：cos(t·π/2) — 与 sin 配对，crossfade 中点总响度恒定
     const startVol = el.volume;
     const startTime = Date.now();
     const duration = fadeOutSeconds * 1000;
     const tick = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      el.volume = Math.max(0, startVol * (1 - progress));
-      if (progress < 1) setTimeout(tick, 60);
+      el.volume = Math.max(0, startVol * Math.cos(progress * Math.PI / 2));
+      if (progress < 1) setTimeout(tick, 50);
       else el.pause();
     };
     tick();
