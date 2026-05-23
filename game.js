@@ -1535,7 +1535,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   $('#btn-destroy').onclick = () => {
     if (window.SFX) SFX.play('click');
-    if (!confirm('销毁前世会清空所有轮回、技能、业力。从头做牛马？')) return;
+    if (!confirm('销毁前世会清空所有轮回、技能、业力、事件库存。从头做牛马？')) return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ARCHIVE_KEY);
     loadArchive();
