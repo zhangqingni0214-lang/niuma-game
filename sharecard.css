@@ -1,0 +1,373 @@
+/* ============================================================
+   分享卡样式 - 致死类（KO 风）+ 朋友圈截图风
+   ============================================================ */
+
+/* 弹窗外壳 */
+.share-modal-card {
+  max-width: 460px;
+  width: 92vw;
+}
+
+.share-preview-wrap {
+  width: 100%;
+  overflow: auto;
+  margin: 12px 0;
+  background: #181818;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 70vh;
+}
+
+#share-card-canvas {
+  /* 实际渲染尺寸 1080×1350，用 transform 缩放到容器宽度 */
+  width: 1080px;
+  height: 1350px;
+  transform-origin: top left;
+  position: relative;
+  background: #000;
+}
+
+.share-btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.share-btn-row .ios-btn { flex: 1; min-width: 100px; }
+
+/* ============================================================
+   样式 A：拳皇 K.O. 风（致死结局）
+   ============================================================ */
+.share-card-ko {
+  width: 1080px;
+  height: 1350px;
+  background:
+    repeating-linear-gradient(45deg, #1a0000 0px, #1a0000 20px, #0a0000 20px, #0a0000 40px);
+  color: #fff;
+  font-family: 'Vonwaon Bitmap', 'PingFang SC', monospace;
+  padding: 60px 50px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.share-card-ko::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent 38px, #ffd60020 38px, #ffd60020 76px),
+    radial-gradient(circle at 50% 0%, #ff003322 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.ko-banner {
+  position: relative;
+  text-align: center;
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+.ko-banner-text {
+  display: inline-block;
+  font-size: 180px;
+  font-weight: 900;
+  color: #ff0033;
+  letter-spacing: 12px;
+  text-shadow:
+    6px 6px 0 #fff,
+    12px 12px 0 #000,
+    0 0 40px #ff003388;
+  font-style: italic;
+  transform: skewX(-8deg);
+  font-family: 'Impact', 'Vonwaon Bitmap', sans-serif;
+}
+.ko-banner-sub {
+  margin-top: 14px;
+  font-size: 28px;
+  color: #ffd600;
+  letter-spacing: 8px;
+}
+
+.ko-charcard {
+  background: rgba(0,0,0,0.7);
+  border: 4px solid #ffd600;
+  border-radius: 8px;
+  padding: 24px 32px;
+  margin: 30px auto;
+  max-width: 700px;
+  position: relative;
+}
+.ko-charcard-emoji { font-size: 80px; text-align: center; line-height: 1; }
+.ko-charcard-name  { font-size: 36px; text-align: center; margin-top: 12px; color: #fff; }
+.ko-charcard-meta  { font-size: 24px; text-align: center; margin-top: 8px; color: #ffd600; }
+
+.ko-ending-name {
+  text-align: center;
+  font-size: 64px;
+  letter-spacing: 16px;
+  color: #fff;
+  margin: 40px 0 30px;
+  text-shadow: 0 0 30px #ff003388;
+}
+
+.ko-summary {
+  background: rgba(255,255,255,0.05);
+  border-top: 2px solid #ff0033;
+  border-bottom: 2px solid #ff0033;
+  padding: 24px 32px;
+  font-size: 24px;
+  line-height: 1.6;
+  color: #ddd;
+  margin: 0 0 30px;
+}
+
+.ko-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 28px;
+  font-size: 26px;
+  margin: 0 24px 30px;
+}
+.ko-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ddd;
+}
+.ko-stat-label { width: 80px; color: #ffd600; }
+.ko-stat-bar {
+  flex: 1;
+  height: 14px;
+  background: #333;
+  border: 1px solid #555;
+  position: relative;
+}
+.ko-stat-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #ff0033;
+}
+.ko-stat-val { width: 50px; text-align: right; color: #fff; }
+
+.ko-tags {
+  text-align: center;
+  margin: 30px 0;
+}
+.ko-tag {
+  display: inline-block;
+  margin: 4px 6px;
+  padding: 6px 18px;
+  border: 2px solid #ffd600;
+  background: rgba(255, 214, 0, 0.1);
+  color: #ffd600;
+  font-size: 22px;
+  border-radius: 4px;
+}
+
+.ko-foot {
+  position: absolute;
+  left: 50px;
+  right: 50px;
+  bottom: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.ko-foot-brand {
+  color: #fff;
+}
+.ko-foot-title {
+  font-size: 32px;
+  letter-spacing: 8px;
+  font-weight: bold;
+}
+.ko-foot-tagline {
+  font-size: 18px;
+  color: #aaa;
+  margin-top: 6px;
+}
+.ko-qr {
+  width: 100px;
+  height: 100px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #000;
+  text-align: center;
+}
+
+/* ============================================================
+   样式 B：朋友圈截图风（通用 alt）
+   ============================================================ */
+.share-card-feed {
+  width: 1080px;
+  height: 1350px;
+  background: #f3f3f3;
+  color: #222;
+  font-family: 'PingFang SC', -apple-system, sans-serif;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-statusbar {
+  height: 44px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 20px;
+  font-weight: 600;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.feed-nav {
+  height: 60px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #333;
+  gap: 12px;
+  border-bottom: 1px solid #eaeaea;
+}
+.feed-nav-back { color: #888; font-size: 28px; }
+
+.feed-post {
+  background: #fff;
+  margin: 16px;
+  border-radius: 12px;
+  padding: 28px 32px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.feed-post-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.feed-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #ffd600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+.feed-author {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+.feed-time {
+  font-size: 22px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.feed-body {
+  font-size: 30px;
+  line-height: 1.6;
+  color: #222;
+  white-space: pre-wrap;
+  margin-bottom: 20px;
+}
+
+.feed-hashtag {
+  color: #5b87d3;
+  font-size: 26px;
+  margin: 10px 0;
+}
+
+.feed-screenshot {
+  background: #111;
+  color: #fff;
+  border-radius: 8px;
+  padding: 36px 28px;
+  text-align: center;
+  margin: 20px 0;
+}
+.feed-shot-day { font-size: 24px; color: #ffd600; margin-bottom: 12px; }
+.feed-shot-ending { font-size: 44px; font-weight: bold; letter-spacing: 4px; margin-bottom: 10px; }
+.feed-shot-summary { font-size: 22px; color: #ddd; line-height: 1.5; }
+
+.feed-stats {
+  display: flex;
+  gap: 36px;
+  font-size: 26px;
+  color: #888;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.feed-tags-row {
+  margin: 0 32px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+.feed-tag {
+  display: inline-block;
+  margin: 4px 6px;
+  padding: 6px 18px;
+  background: #fff8e0;
+  color: #b88a00;
+  font-size: 22px;
+  border-radius: 16px;
+  border: 1px solid #ffd60055;
+}
+
+.feed-foot {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 28px 32px;
+  background: linear-gradient(0deg, #fff 0%, #ffffff00 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.feed-foot-text { font-size: 24px; color: #555; }
+.feed-foot-text b { color: #ff0033; }
+.feed-qr {
+  width: 100px;
+  height: 100px;
+  background: #fff;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ============================================================
+   音效开关按钮
+   ============================================================ */
+.sfx-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #ffd600;
+  background: #1a1a1a;
+  color: #ffd600;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.sfx-toggle:hover { opacity: 1; }
+.sfx-toggle.muted { color: #555; border-color: #555; }

@@ -208,23 +208,45 @@ function applyEffects(effects, ctx) {
     }
   }
 
-  // === 技能 passive 修正 ===
-  if (unlocked.has('coffee_immune') && /咖啡|美式|黑咖/.test(choice?.text || '')) {
+  // === 技能 passive 修正（v0.9: 已迁移到 tag 字段，正则回退仅作兜底）===
+  const evTags = ev?.tags || [];
+  const chTags = choice?.tags || [];
+
+  // 不眠咒：选择含"咖啡"行为时不扣健康，提神 ×1.5
+  if (unlocked.has('coffee_immune') &&
+      (chTags.includes('coffee') || /咖啡|美式|黑咖/.test(choice?.text || ''))) {
     if (adj.health && adj.health < 0) adj.health = 0;
     if (adj.fatigue && adj.fatigue < 0) adj.fatigue = Math.floor(adj.fatigue * 1.5);
   }
-  if (unlocked.has('thick_skin') && choice?.snark && adj.salary && adj.salary < 0) {
+
+  // 金钟罩：怼老板时工资损失减半
+  if (unlocked.has('thick_skin') && (choice?.snark || chTags.includes('snark'))
+      && adj.salary && adj.salary < 0) {
     adj.salary = Math.ceil(adj.salary / 2);
   }
-  if (unlocked.has('rubber_duck') && /加班|凌晨|代码|bug|功能|case/.test(ev?.text + ev?.title || '')) {
+
+  // 橡皮鸭：技术类事件 +skill
+  if (unlocked.has('rubber_duck') &&
+      (evTags.includes('tech') || evTags.includes('overtime')
+       || /加班|凌晨|代码|bug|功能|case/.test((ev?.text || '') + (ev?.title || '')))) {
     adj.skill = (adj.skill || 0) + 2;
   }
-  if (unlocked.has('social_butterfly') && /同事|团建|红包|破冰|聚会/.test(ev?.text + ev?.title || '')) {
+
+  // 群聊魅影：同事 / 团建场景 +mood
+  if (unlocked.has('social_butterfly') &&
+      (evTags.includes('team') || evTags.includes('holiday')
+       || /同事|团建|红包|破冰|聚会/.test((ev?.text || '') + (ev?.title || '')))) {
     adj.mood = (adj.mood || 0) + 3;
   }
-  if (unlocked.has('promotion_radar') && /老板|画饼|期权|晋升|考核|HR/.test(ev?.text + ev?.title || '')) {
+
+  // 反向画饼术：老板 / HR 类对话 +salary
+  if (unlocked.has('promotion_radar') &&
+      (evTags.includes('boss') || evTags.includes('hr')
+       || /老板|画饼|期权|晋升|考核|HR/.test((ev?.text || '') + (ev?.title || '')))) {
     adj.salary = (adj.salary || 0) + 2;
   }
+
+  // 钢铁老脸：低健康时压力增量减半
   if (unlocked.has('iron_will') && state.stats.health < 30 && adj.stress && adj.stress > 0) {
     adj.stress = Math.ceil(adj.stress / 2);
   }
@@ -422,9 +444,11 @@ function showMoneyToast(amount, note) {
   if (amount > 0) {
     const tip = MONEY_IN_TIPS[Math.floor(Math.random() * MONEY_IN_TIPS.length)];
     showToast(`💰 ${tip} +¥${amount}${noteText}`);
+    if (window.SFX) SFX.play('money_in');
   } else {
     const tip = MONEY_OUT_TIPS[Math.floor(Math.random() * MONEY_OUT_TIPS.length)];
     showToast(`💸 ${tip} −¥${Math.abs(amount)}${noteText}`);
+    if (window.SFX) SFX.play('money_out');
   }
 }
 
@@ -438,6 +462,13 @@ const BONUS_QUIPS = [
   '终于有个数字让你不那么想辞职了。',
   '感谢公司，不感谢老板。'
 ];
+const MINIMAL_QUIPS = [
+  '老板说："看在你还在岗的份上。"',
+  '工资分跌了，但 HR 替你说了几句好话。',
+  '这叫"温情绩效"——意思是聊胜于无。',
+  '保底两个字，是公司唯一的温柔。',
+  '不算奖励，算"安抚"。'
+];
 const REVERSE_QUIPS = [
   '你比刚来的时候还菜，\n老板不发钱。',
   'HR 在群里\n贴了一个红色感叹号。',
@@ -447,6 +478,7 @@ const REVERSE_QUIPS = [
 ];
 
 function showBonusModal(data, onClose) {
+  if (window.SFX) SFX.play(data.type === 'reverse' ? 'bonus_reverse' : 'bonus');
   const titleEl = $('#bonus-title');
   const iconEl = $('#bonus-icon');
   const mainEl = $('#bonus-main');
@@ -454,13 +486,23 @@ function showBonusModal(data, onClose) {
   const noteEl = $('#bonus-quip');
 
   if (data.type === 'paid') {
-    titleEl.textContent = '💰 绩效到账';
-    iconEl.textContent = '💰';
-    mainEl.textContent = `老板给你打了 ${data.salary} 分`;
-    amountEl.textContent = `+¥${data.amount}`;
-    amountEl.classList.remove('zero');
-    amountEl.classList.add('positive');
-    noteEl.textContent = BONUS_QUIPS[Math.floor(Math.random() * BONUS_QUIPS.length)];
+    if (data.minimal) {
+      titleEl.textContent = '🪙 保底绩效';
+      iconEl.textContent = '🪙';
+      mainEl.textContent = `工资分 ${data.current}，起步 ${data.initial}，勉强保住保底`;
+      amountEl.textContent = `+¥${data.amount}`;
+      amountEl.classList.remove('zero');
+      amountEl.classList.add('positive');
+      noteEl.textContent = MINIMAL_QUIPS[Math.floor(Math.random() * MINIMAL_QUIPS.length)];
+    } else {
+      titleEl.textContent = '💰 绩效到账';
+      iconEl.textContent = '💰';
+      mainEl.textContent = `老板给你打了 ${data.salary} 分`;
+      amountEl.textContent = `+¥${data.amount}`;
+      amountEl.classList.remove('zero');
+      amountEl.classList.add('positive');
+      noteEl.textContent = BONUS_QUIPS[Math.floor(Math.random() * BONUS_QUIPS.length)];
+    }
   } else {
     titleEl.textContent = '⚠️ 绩效倒挂';
     iconEl.textContent = '📉';
@@ -482,6 +524,7 @@ function showBonusModal(data, onClose) {
 // 扣款弹窗
 // =====================
 function showDeductionModal(costs, onClose) {
+  if (window.SFX) SFX.play('deduction');
   const total = costs.reduce((a, c) => a + c.amount, 0);
   const listEl = $('#deduction-list');
   listEl.innerHTML = '';
@@ -509,21 +552,28 @@ function trackChoice(event, choiceIdx) {
   h.totalChoices += 1;
   const choice = event.choices[choiceIdx];
   const text = choice.text;
+  const tags = choice.tags || [];
 
-  if (choice.snark) h.snarkCount += 1;
-  if (event.pool === 'side_hustle') h.sideHustleCount += 1;
-  if (choice.requiredSkill === 'office_politics') h.politicsCount += 1;
+  // 兼容：snark 字段或 snark tag 均可触发
+  if (choice.snark || tags.includes('snark')) h.snarkCount += 1;
+  if (event.pool === 'side_hustle' || tags.includes('side_work')) h.sideHustleCount += 1;
+  if (choice.requiredSkill === 'office_politics' || tags.includes('politics')) h.politicsCount += 1;
   if (choice.requiredSkill && !h.skillsUsed.includes(choice.requiredSkill)) {
     h.skillsUsed.push(choice.requiredSkill);
   }
 
-  if (/摸鱼|装作|拍照|盯着|画一|趴一会|不抢|潜水|关电脑|关灯睡|看不见|偷偷|关掉|不看了/.test(text)) {
+  // v0.9: 优先用 tag，正则回退
+  if (tags.includes('fishing')
+      || /摸鱼|装作|拍照|盯着|画一|趴一会|不抢|潜水|关电脑|关灯睡|看不见|偷偷|关掉|不看了/.test(text)) {
     h.fishingCount += 1;
     h.submissiveCount += 1;
   }
-  if (/咖啡|美式|黑咖/.test(text)) h.coffeeCount += 1;
-  if (/凌晨|加班|硬扛|咬牙|跑通|爬起来把代码/.test(text)) h.overtimeCount += 1;
+  if (tags.includes('coffee') || /咖啡|美式|黑咖/.test(text)) h.coffeeCount += 1;
+  if (tags.includes('overtime') || /凌晨|加班|硬扛|咬牙|跑通|爬起来把代码/.test(text)) {
+    h.overtimeCount += 1;
+  }
   if (event.id === 'team_building' && choiceIdx >= 1) h.refuseTeamBuilding = true;
+  if (tags.includes('refuse') && event.tags?.includes('team')) h.refuseTeamBuilding = true;
 }
 
 // =====================
@@ -540,6 +590,7 @@ function advanceTime() {
     state.money += dailyWage;
     if (dailyWage > 0) {
       showToast(`💰 日薪到账 +¥${dailyWage}`);
+      if (window.SFX) SFX.play('day_advance');
     }
 
     // 小组长：每天烂货自动累积
@@ -548,16 +599,28 @@ function advanceTime() {
       state.stats.stress = clamp(state.stats.stress + 3, 0, 100);
     }
 
-    // Day 7 绩效结算
-    if (state.day === 7 && !state.bonusPaidDay7) {
+    // Day 3 绩效结算（原 Day 7，v0.9 调整为提前到 Day 3 节奏更紧）
+    // 公式：bonus = round(salaryAmount × currentSalary / 100 / 5)
+    // 容忍区间：工资分跌幅 ≤ 20% 时，保底绩效 = 月薪 × 2.5%（避免一跌就倒挂）
+    if (state.day === 3 && !state.bonusPaidDay7) {
       state.bonusPaidDay7 = true;
       const currentSalary = state.stats.salary;
       const initial = state.initialSalary;
-      if (currentSalary < initial) {
-        // 工资分低于起始 → 不发，挂"绩效倒挂"通知
+      const tolerance = initial * 0.8; // 容忍下限
+
+      if (currentSalary < tolerance) {
+        // 跌幅 > 20% → 真倒挂
         state.pendingBonusModal = { type: 'reverse', initial, current: currentSalary };
+      } else if (currentSalary < initial) {
+        // 容忍区间内 → 保底绩效（月薪的 2.5%，向百元取整）
+        const minBonus = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+        if (minBonus > 0) state.money += minBonus;
+        state.pendingBonusModal = {
+          type: 'paid', amount: minBonus, salary: currentSalary, minimal: true, initial
+        };
       } else {
-        const bonus = Math.round((state.salaryAmount * currentSalary) / 100 / 4);
+        // 正常绩效
+        const bonus = Math.round((state.salaryAmount * currentSalary) / 100 / 5);
         state.money += bonus;
         state.pendingBonusModal = { type: 'paid', amount: bonus, salary: currentSalary };
       }
@@ -802,6 +865,12 @@ function renderGame() {
 
 function makeChoice(ev, idx) {
   const choice = ev.choices[idx];
+  // 音效：技能选项 / 怼 / 普通各不同
+  if (window.SFX) {
+    if (choice.hidden) SFX.play('skill_choice');
+    else if (choice.snark) SFX.play('snark');
+    else SFX.play('choice_select');
+  }
   applyEffects(choice.effects, { event: ev, choice });
   trackChoice(ev, idx);
 
@@ -847,6 +916,10 @@ function nextStep() {
 }
 
 function showEnding(ending) {
+  if (window.SFX) {
+    SFX.play(ending.id === 'survival' ? 'survive' : 'death');
+    SFX.stopBGM();
+  }
   finalizeLife(ending);
   $('#ending-name').textContent = ending.name;
   $('#ending-summary').textContent = ending.summary;
@@ -1072,6 +1145,35 @@ window.addEventListener('DOMContentLoaded', () => {
     renderInvestiture('character');
   };
   $('#ending-to-skills').onclick = renderSkillTree;
+
+  // 分享卡片
+  $('#ending-share').onclick = () => {
+    const last = archive.lives[0];
+    if (last) window.showShareCard(last, archive);
+  };
+  $('#share-close').onclick = () => $('#share-modal').classList.add('hidden');
+  $('#share-toggle-style').onclick = () => {
+    const last = archive.lives[0];
+    if (last) window.toggleShareStyle(last, archive);
+  };
+  $('#share-download').onclick = () => {
+    const last = archive.lives[0];
+    if (last) window.downloadShareCard(last);
+  };
+
+  // 音效开关
+  $('#sfx-toggle').onclick = () => {
+    if (window.SFX) {
+      const enabled = window.SFX.toggle();
+      $('#sfx-toggle').textContent = enabled ? '🔊' : '🔇';
+      $('#sfx-toggle').classList.toggle('muted', !enabled);
+    }
+  };
+  if (window.SFX) {
+    const enabled = window.SFX.isEnabled();
+    $('#sfx-toggle').textContent = enabled ? '🔊' : '🔇';
+    $('#sfx-toggle').classList.toggle('muted', !enabled);
+  }
 
   // 投胎导航
   $('#inv-next-job').onclick = () => renderInvestiture('job');

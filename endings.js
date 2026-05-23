@@ -64,7 +64,7 @@ window.ENDINGS = [
     name: '拍桌裸辞·走得潇洒',
     summary: '你站起来，把工牌摔在 HR 桌上，"我自己走，N+1 我不要，我只要明天不上班。" HR 愣了两秒，"那也要交接……" 你已经下楼了。下楼的电梯里你哭了，但脸是笑的。',
     priority: 95,
-    condition: (s, ctx) => ctx.character === 'horse' && (ctx.snarkCount || 0) >= 5 && s.stress >= 70
+    condition: (s, ctx) => ctx.character === 'horse' && (ctx.snarkCount || 0) >= 5 && s.stress >= 70 && ctx.day >= 5
   },
   // 角色专属：小牛 - 被劳损拍拍损
   {
@@ -72,7 +72,7 @@ window.ENDINGS = [
     name: '老实人之死·公司发了讣告',
     summary: '你倒在工位上的时候，是周五下午五点。同事说"他刚发了周报"。HR 在群里发了"沉痛悼念"，配图是你抱着电脑的微笑工牌照。老板朋友圈转发，配文："这才是真正的奋斗者。"',
     priority: 95,
-    condition: (s, ctx) => ctx.character === 'ox' && s.fatigue >= 95 && s.salary >= 60
+    condition: (s, ctx) => ctx.character === 'ox' && s.fatigue >= 95 && s.salary >= 50
   },
   // HR 专属：被自己优化
   {

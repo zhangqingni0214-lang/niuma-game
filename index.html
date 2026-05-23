@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="牛马公司 - 一个 5 分钟一局的打工人轮回模拟器。你上一次感觉自己还活着，是什么时候？" />
+  <meta property="og:title" content="牛马公司" />
+  <meta property="og:description" content="你上一次感觉自己还活着，是什么时候？" />
+  <meta property="og:type" content="website" />
   <title>牛马公司</title>
-  <link rel="stylesheet" href="styles.css?v=40" />
+  <!-- Build: v1.0.0 ship · 2026-05-23 -->
+  <link rel="stylesheet" href="styles.css?v=ship1" />
+  <link rel="stylesheet" href="sharecard.css?v=ship1" />
 </head>
 <body>
   <div class="app">
@@ -128,6 +134,7 @@
         <div class="ending-tag-label">人设标签</div>
         <div class="ending-tags" id="ending-tags"></div>
         <div class="ending-btn-row">
+          <button class="menu-btn skill" id="ending-share">生成分享卡</button>
           <button class="menu-btn skill" id="ending-to-skills">修炼秘籍</button>
           <button class="menu-btn primary" id="ending-replay">再投胎一次</button>
           <button class="menu-btn secondary" id="ending-back">回地府</button>
@@ -188,6 +195,24 @@
   <!-- 顶部 Toast (日薪到账等轻提示) -->
   <div id="toast" class="toast hidden"></div>
 
+  <!-- 分享卡预览弹窗 -->
+  <div id="share-modal" class="modal hidden">
+    <div class="modal-card share-modal-card">
+      <div class="modal-title">📸 分享卡预览</div>
+      <div class="share-preview-wrap">
+        <div id="share-card-canvas"></div>
+      </div>
+      <div class="share-btn-row">
+        <button class="ios-btn ios-btn-secondary" id="share-toggle-style">切换样式</button>
+        <button class="ios-btn ios-btn-primary" id="share-download">下载图片</button>
+        <button class="ios-btn ios-btn-secondary" id="share-close">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 音效开关（贴在右上角） -->
+  <button id="sfx-toggle" class="sfx-toggle" title="音效开关">🔊</button>
+
   <!-- 绩效到账弹窗 -->
   <div id="bonus-modal" class="modal hidden">
     <div class="modal-card">
@@ -202,10 +227,14 @@
     </div>
   </div>
 
-  <script src="jobs.js?v=40"></script>
-  <script src="events.js?v=40"></script>
-  <script src="endings.js?v=40"></script>
-  <script src="skills.js?v=40"></script>
-  <script src="game.js?v=40"></script>
+  <script src="jobs.js?v=ship1"></script>
+  <script src="events.js?v=ship1"></script>
+  <script src="endings.js?v=ship1"></script>
+  <script src="skills.js?v=ship1"></script>
+  <script src="tags.js?v=ship1"></script>
+  <script src="sfx.js?v=ship1"></script>
+  <script src="sharecard.js?v=ship1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="game.js?v=ship1"></script>
 </body>
 </html>
