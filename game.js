@@ -716,38 +716,165 @@ function checkEnding() {
 }
 
 // =====================
-// v0.9.4 濒死预警 - 在状态进入危险区时发 toast 提醒
-// 每种警告只触发一次（用 _warnedFlags 记录）
+// v0.9.5 濒死预警 - 升级为救援购买弹窗 + 简单 toast 两档
+// 4 类核心（fatigue/stress/health/mood）→ 弹窗，玩家可花钱缓解
+// 3 类辅助（salary/money/snark）→ 仍然只是 toast 提醒
+// 每种警告全场仅触发一次（_warnedFlags）
 // =====================
-const WARNINGS = [
-  { key: 'fatigue80', when: (s, h) => s.fatigue >= 80,
-    msg: '⚠️ 疲劳爆表了，再不休息会出事' },
-  { key: 'stress80', when: (s, h) => s.stress >= 80,
-    msg: '⚠️ 压力快撑不住了' },
-  { key: 'health35', when: (s, h) => s.health <= 35,
-    msg: '⚠️ 健康亮红灯了，注意身体' },
-  { key: 'mood25', when: (s, h) => s.mood <= 25,
-    msg: '⚠️ 心情低到谷底了' },
-  { key: 'salary20', when: (s, h) => s.stats?.salary <= 20 || (s.salary !== undefined && s.salary <= 20),
-    msg: '⚠️ 工资分跌得太狠，老板要动手了' },
-  { key: 'money_low', when: (s, h) => s.money !== undefined && s.money <= -100,
-    msg: '⚠️ 存款见底，再花点就破产了' },
-  { key: 'snark6', when: (s, h) => (h?.snarkCount || 0) >= 6,
-    msg: '⚠️ 你怼老板第 6 次了，HR 在盯着' },
+
+// 救援弹窗 - 4 类可花钱干预的危险态
+const RESCUE_WARNINGS = [
+  {
+    key: 'fatigue80',
+    when: (s, h) => s.fatigue >= 80,
+    title: '⚠️ 疲劳爆表了',
+    desc: '你已经好几天没好好睡过觉，眼皮一直跳。要不要花点钱缓一缓？',
+    options: [
+      { icon: '💆', label: '去按摩店深度放松一晚',         cost: 200, effects: { fatigue: -18, mood: +3 } },
+      { icon: '🍱', label: '叫高级外卖 + 早睡',           cost: 80,  effects: { fatigue: -10 } },
+      { icon: '🛏', label: '请假一天躺尸',               cost: 0,   effects: { fatigue: -25, salary: -3 } },
+    ]
+  },
+  {
+    key: 'stress80',
+    when: (s, h) => s.stress >= 80,
+    title: '⚠️ 压力快撑不住了',
+    desc: '梦里全是 PPT 和会议。要不要花点钱泄一下洪？',
+    options: [
+      { icon: '🧠', label: '约心理咨询师 1 小时',         cost: 500, effects: { stress: -22, mood: +6 } },
+      { icon: '🍻', label: '约朋友撸串喝啤酒',           cost: 150, effects: { stress: -14, mood: +5, health: -4 } },
+      { icon: '🏠', label: '装病假在家闭关一天',          cost: 0,   effects: { stress: -18, salary: -3 } },
+    ]
+  },
+  {
+    key: 'health35',
+    when: (s, h) => s.health <= 35,
+    title: '⚠️ 健康亮红灯了',
+    desc: '体检报告里那行红字越来越大，再拖会真出事。',
+    options: [
+      { icon: '🏥', label: '三甲医院全套检查 + 调理',     cost: 800, effects: { health: +28 } },
+      { icon: '💊', label: '社区医院开点药 + 多休息',     cost: 200, effects: { health: +12 } },
+      { icon: '😶', label: '自己扛过去',                cost: 0,   effects: {} },
+    ]
+  },
+  {
+    key: 'mood25',
+    when: (s, h) => s.mood <= 25,
+    title: '⚠️ 心情低到谷底',
+    desc: '已经一周没真心笑过了。给自己一点光？',
+    options: [
+      { icon: '✈️', label: '请年假 + 短途旅行',          cost: 600, effects: { mood: +30, fatigue: -8, salary: -3 } },
+      { icon: '🎬', label: '一个人去看场电影',           cost: 80,  effects: { mood: +14 } },
+      { icon: '💬', label: '约朋友吐槽一整晚',           cost: 50,  effects: { mood: +20, fatigue: +3 } },
+    ]
+  },
+];
+
+// 简单 toast - 没有简单"买药"能解决的警告
+const TOAST_WARNINGS = [
+  { key: 'salary20',  when: (s, h) => s.salary <= 20,    msg: '⚠️ 工资分跌得太狠，老板要动手了' },
+  { key: 'money_low', when: (s, h) => s.money <= -100,   msg: '⚠️ 存款见底，再花点就破产了' },
+  { key: 'snark6',    when: (s, h) => (h?.snarkCount || 0) >= 6, msg: '⚠️ 你怼老板第 6 次了，HR 在盯着' },
 ];
 
 function checkWarnings() {
   if (!state._warnedFlags) state._warnedFlags = {};
-  // 把 money 也塞进 s 上下文方便统一判断
   const s = { ...state.stats, money: state.money };
   const h = state.history;
-  for (const w of WARNINGS) {
+
+  // Toast 类
+  for (const w of TOAST_WARNINGS) {
     if (state._warnedFlags[w.key]) continue;
     if (w.when(s, h)) {
       state._warnedFlags[w.key] = true;
       showToast(w.msg, 2400);
     }
   }
+
+  // 救援弹窗类 - 收集队列，按先后顺序弹出
+  const queue = [];
+  for (const w of RESCUE_WARNINGS) {
+    if (state._warnedFlags[w.key]) continue;
+    if (w.when(s, h)) {
+      state._warnedFlags[w.key] = true;
+      queue.push(w);
+    }
+  }
+  if (queue.length > 0) showRescueQueue(queue);
+}
+
+function showRescueQueue(queue) {
+  if (queue.length === 0) return;
+  const w = queue.shift();
+  showRescueModal(w, () => showRescueQueue(queue));
+}
+
+const STAT_NAMES = { health:'健康', stress:'压力', mood:'心情', fatigue:'疲劳', skill:'技能', salary:'工资分' };
+
+function showRescueModal(warning, onDone) {
+  $('#rescue-title').textContent = warning.title;
+  $('#rescue-desc').textContent = warning.desc;
+  const optsEl = $('#rescue-options');
+  optsEl.innerHTML = '';
+
+  warning.options.forEach(opt => {
+    const affordable = state.money >= opt.cost;
+    const div = document.createElement('div');
+    div.className = 'rescue-option' + (affordable ? '' : ' disabled');
+
+    // 拼接 effects 文字
+    const parts = [];
+    if (opt.cost > 0) parts.push(`<span class="rescue-cost">−¥${opt.cost}</span>`);
+    else parts.push('<span class="rescue-free">免费</span>');
+
+    for (const [k, v] of Object.entries(opt.effects)) {
+      const name = STAT_NAMES[k] || k;
+      const sign = v > 0 ? '+' : '';
+      const cls = ['stress','fatigue'].includes(k)
+        ? (v < 0 ? 'rescue-gain' : 'rescue-loss')
+        : (v > 0 ? 'rescue-gain' : 'rescue-loss');
+      parts.push(`<span class="${cls}">${name} ${sign}${v}</span>`);
+    }
+
+    div.innerHTML = `
+      <div class="rescue-option-label">${opt.icon} ${opt.label}</div>
+      <div class="rescue-option-effects">${parts.join(' · ')}</div>
+      ${!affordable ? '<div class="rescue-option-warn">存款不足</div>' : ''}
+    `;
+
+    if (affordable) {
+      div.onclick = () => {
+        if (window.SFX) SFX.play('choice_select');
+        // 扣钱
+        if (opt.cost > 0) {
+          state.money -= opt.cost;
+          showMoneyToast(-opt.cost, '紧急救援');
+        }
+        // 应用 effects（手动 clamp，不走 applyEffects 因为不算事件选项）
+        for (const [k, v] of Object.entries(opt.effects)) {
+          if (state.stats[k] !== undefined) {
+            state.stats[k] = clamp(state.stats[k] + v, 0, 100);
+          }
+        }
+        $('#rescue-modal').classList.add('hidden');
+        saveState();
+        // 刷新游戏页 UI（如果当前在游戏页）
+        if (typeof renderGame === 'function' && state && !state.ended) renderGame();
+        if (onDone) onDone();
+      };
+    }
+
+    optsEl.appendChild(div);
+  });
+
+  $('#rescue-skip').onclick = () => {
+    if (window.SFX) SFX.play('back');
+    $('#rescue-modal').classList.add('hidden');
+    if (onDone) onDone();
+  };
+
+  $('#rescue-modal').classList.remove('hidden');
+  if (window.SFX) SFX.play('modal_open');
 }
 
 function statusLabel() {

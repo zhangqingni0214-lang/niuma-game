@@ -9,7 +9,7 @@
   <meta property="og:type" content="website" />
   <title>牛马公司</title>
   <!-- Build: v1.0.0 ship · 2026-05-23 -->
-  <link rel="stylesheet" href="styles.css?v=ship3" />
+  <link rel="stylesheet" href="styles.css?v=ship5" />
   <link rel="stylesheet" href="sharecard.css?v=ship1" />
 </head>
 <body>
@@ -196,6 +196,16 @@
   <!-- 顶部 Toast (日薪到账等轻提示) -->
   <div id="toast" class="toast hidden"></div>
 
+  <!-- 救援购买弹窗 (v0.9.5 濒死预警升级) -->
+  <div id="rescue-modal" class="modal hidden">
+    <div class="modal-card rescue-card">
+      <div class="modal-title" id="rescue-title">⚠️</div>
+      <div class="rescue-desc" id="rescue-desc">—</div>
+      <div class="rescue-options" id="rescue-options"></div>
+      <button class="ios-btn ios-btn-secondary" id="rescue-skip">算了，硬扛</button>
+    </div>
+  </div>
+
   <!-- 分享卡预览弹窗 -->
   <div id="share-modal" class="modal hidden">
     <div class="modal-card share-modal-card">
@@ -236,6 +246,6 @@
   <script src="sfx.js?v=ship1"></script>
   <script src="sharecard.js?v=ship1"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="game.js?v=ship4"></script>
+  <script src="game.js?v=ship5"></script>
 </body>
 </html>
