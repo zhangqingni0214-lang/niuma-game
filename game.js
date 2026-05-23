@@ -103,6 +103,7 @@ function loadArchive() {
       archive = JSON.parse(raw);
       archive.karma = archive.karma ?? 0;
       archive.unlockedSkills = archive.unlockedSkills ?? [];
+      archive.comboSeen = archive.comboSeen ?? {}; // 老存档迁移
       return;
     }
   } catch (e) { console.warn(e); }
@@ -113,7 +114,10 @@ function loadArchive() {
     unlockedTags: [],
     seenEventIds: [],
     karma: 0,
-    unlockedSkills: []
+    unlockedSkills: [],
+    // 跨局记忆：{ "horse:engineer": [eventId, ...] }
+    // 同 (character, job) 组合连续投胎时避免抽到重复事件，组合内事件全见过才清零
+    comboSeen: {}
   };
 }
 
@@ -135,6 +139,9 @@ function hasSave()    { return !!localStorage.getItem(STORAGE_KEY); }
 function pickEvent() {
   const unlockedSkills = new Set(archive.unlockedSkills);
   const jobId = state.profile.jobId;
+  const comboKey = state.character + ':' + jobId;
+  archive.comboSeen = archive.comboSeen || {};
+  const comboSeen = new Set(archive.comboSeen[comboKey] || []);
 
   const pool = window.EVENTS.filter(e => {
     if (e.timeSlot !== undefined && e.timeSlot !== state.timeSlot) return false;
@@ -148,7 +155,16 @@ function pickEvent() {
     return true;
   });
 
-  let unseen = pool.filter(e => !state.seenEventIds.includes(e.id));
+  // 优先级 1：本世没见过 且 同组合也没见过（最新鲜）
+  let unseen = pool.filter(e =>
+    !state.seenEventIds.includes(e.id) && !comboSeen.has(e.id)
+  );
+  // 优先级 2：同组合记忆把池子掏空 → 该组合一轮见完，清零开启新一轮
+  if (unseen.length === 0) {
+    unseen = pool.filter(e => !state.seenEventIds.includes(e.id));
+    if (unseen.length > 0) archive.comboSeen[comboKey] = [];
+  }
+  // 优先级 3：本世也见完了 → 兜底任意池
   if (unseen.length === 0) unseen = pool;
   if (unseen.length === 0) return null;
   return unseen[Math.floor(Math.random() * unseen.length)];
@@ -1145,7 +1161,15 @@ function renderGame() {
     }
     state.pendingEvent = ev.id;
     state.seenEventIds.push(ev.id);
+    // 同时写入跨局组合记忆，下次同 (character, job) 投胎会避开
+    const comboKey = state.character + ':' + state.profile.jobId;
+    archive.comboSeen = archive.comboSeen || {};
+    archive.comboSeen[comboKey] = archive.comboSeen[comboKey] || [];
+    if (!archive.comboSeen[comboKey].includes(ev.id)) {
+      archive.comboSeen[comboKey].push(ev.id);
+    }
     saveState();
+    saveArchive();
   }
   const ev = window.EVENTS.find(e => e.id === state.pendingEvent);
   $('#event-title').textContent = ev.title;
