@@ -58,26 +58,61 @@ class SFXEngine {
     }
   }
 
-  playBGM(name) {
+  // v0.9.8: playBGM 支持 fadeIn 秒数（默认 1.5s）
+  // 结局页特别要求 3s 缓慢渐入
+  playBGM(name, fadeInSeconds = 1.5) {
     if (!this._enabled) return;
     if (this._bgmName === name && this._bgmEl) return;
-    this.stopBGM();
+    this.stopBGM(0.4); // 切换时旧 BGM 0.4s 淡出
     const url = BGM_PATHS[name];
     if (!url) return;
+    const targetVolume = 0.18;
     const el = new Audio(url);
     el.loop = true;
-    el.volume = 0.18;
+    el.volume = 0;
     el.play().catch(() => {});
     this._bgmEl = el;
     this._bgmName = name;
+
+    if (fadeInSeconds <= 0) {
+      el.volume = targetVolume;
+      return;
+    }
+    const startTime = Date.now();
+    const duration = fadeInSeconds * 1000;
+    const tick = () => {
+      // 如果在淡入期间被切换/停止，停止 ramp
+      if (!this._bgmEl || this._bgmEl !== el) return;
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // 使用 ease-out 让感受更自然（前快后慢，更早能听到）
+      const eased = 1 - Math.pow(1 - progress, 2);
+      el.volume = targetVolume * eased;
+      if (progress < 1) setTimeout(tick, 60);
+    };
+    setTimeout(tick, 60);
   }
 
-  stopBGM() {
-    if (this._bgmEl) {
-      this._bgmEl.pause();
-      this._bgmEl = null;
-      this._bgmName = null;
+  stopBGM(fadeOutSeconds = 0) {
+    if (!this._bgmEl) return;
+    const el = this._bgmEl;
+    this._bgmEl = null;
+    this._bgmName = null;
+    if (fadeOutSeconds <= 0) {
+      el.pause();
+      return;
     }
+    const startVol = el.volume;
+    const startTime = Date.now();
+    const duration = fadeOutSeconds * 1000;
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      el.volume = Math.max(0, startVol * (1 - progress));
+      if (progress < 1) setTimeout(tick, 60);
+      else el.pause();
+    };
+    tick();
   }
 
   // Debug 用：依次播放全部 15 个音效，控制台调用 SFX.previewAll()

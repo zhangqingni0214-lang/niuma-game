@@ -57,8 +57,9 @@ function newGame(characterId, jobId) {
   const stats = { ...job.baseStats };
   applyOffsets(stats, character.statOffset);
 
+  // v0.9.8: 大圣归来从 5% → 10% 继承
   const inheritedMoney = (archive.unlockedSkills.includes('nirvana_rebirth') && archive.lives[0])
-    ? Math.floor((archive.lives[0].money || 0) * 0.05)
+    ? Math.floor((archive.lives[0].money || 0) * 0.10)
     : 0;
 
   state = {
@@ -212,43 +213,55 @@ function applyEffects(effects, ctx) {
   const evTags = ev?.tags || [];
   const chTags = choice?.tags || [];
 
-  // 不眠咒：选择含"咖啡"行为时不扣健康，提神 ×1.5
+  // v0.9.8 平衡强化版
+
+  // 不眠咒：咖啡不扣健康，提神 ×1.5，额外 -3 压力
   if (unlocked.has('coffee_immune') &&
       (chTags.includes('coffee') || /咖啡|美式|黑咖/.test(choice?.text || ''))) {
     if (adj.health && adj.health < 0) adj.health = 0;
     if (adj.fatigue && adj.fatigue < 0) adj.fatigue = Math.floor(adj.fatigue * 1.5);
+    adj.stress = (adj.stress || 0) - 3;
   }
 
-  // 金钟罩：怼老板时工资损失减半
+  // 金钟罩：怼老板工资损失 −60%（×0.4 而非 ÷2）
   if (unlocked.has('thick_skin') && (choice?.snark || chTags.includes('snark'))
       && adj.salary && adj.salary < 0) {
-    adj.salary = Math.ceil(adj.salary / 2);
+    adj.salary = Math.ceil(adj.salary * 0.4);
   }
 
-  // 橡皮鸭：技术类事件 +skill
+  // 橡皮鸭：技术类事件 +4 skill, -2 fatigue
   if (unlocked.has('rubber_duck') &&
       (evTags.includes('tech') || evTags.includes('overtime')
        || /加班|凌晨|代码|bug|功能|case/.test((ev?.text || '') + (ev?.title || '')))) {
-    adj.skill = (adj.skill || 0) + 2;
+    adj.skill = (adj.skill || 0) + 4;
+    adj.fatigue = (adj.fatigue || 0) - 2;
   }
 
-  // 群聊魅影：同事 / 团建场景 +mood
+  // 群聊魅影：同事 / 团建场景 +5 mood, -2 stress
   if (unlocked.has('social_butterfly') &&
       (evTags.includes('team') || evTags.includes('holiday')
        || /同事|团建|红包|破冰|聚会/.test((ev?.text || '') + (ev?.title || '')))) {
-    adj.mood = (adj.mood || 0) + 3;
+    adj.mood = (adj.mood || 0) + 5;
+    adj.stress = (adj.stress || 0) - 2;
   }
 
-  // 反向画饼术：老板 / HR 类对话 +salary
+  // 办公室王安石 passive：政治类选项额外 +3 salary
+  if (unlocked.has('office_politics') &&
+      (chTags.includes('politics') || choice?.requiredSkill === 'office_politics')) {
+    adj.salary = (adj.salary || 0) + 3;
+  }
+
+  // 反向画饼术：老板 / HR 类对话 +3 salary
   if (unlocked.has('promotion_radar') &&
       (evTags.includes('boss') || evTags.includes('hr')
        || /老板|画饼|期权|晋升|考核|HR/.test((ev?.text || '') + (ev?.title || '')))) {
-    adj.salary = (adj.salary || 0) + 2;
+    adj.salary = (adj.salary || 0) + 3;
   }
 
-  // 钢铁老脸：低健康时压力增量减半
-  if (unlocked.has('iron_will') && state.stats.health < 30 && adj.stress && adj.stress > 0) {
-    adj.stress = Math.ceil(adj.stress / 2);
+  // 钢铁老脸：健康<30 时 stress + fatigue 增量均减半
+  if (unlocked.has('iron_will') && state.stats.health < 30) {
+    if (adj.stress && adj.stress > 0)   adj.stress  = Math.ceil(adj.stress / 2);
+    if (adj.fatigue && adj.fatigue > 0) adj.fatigue = Math.ceil(adj.fatigue / 2);
   }
 
   // v0.9.6 全局难度调节 - 给玩家活路（不破坏单事件的相对设计）
@@ -941,6 +954,8 @@ function finalizeLife(ending) {
   archive.totalLives = Math.max(archive.totalLives, state.life);
 
   let karmaGain = state.day;
+  // v0.9.8: 通关结局额外 +20 业力（奖励"活下来了"的稀有度）
+  if (ending.id === 'survival') karmaGain += 20;
   if (!archive.unlockedEndings.includes(ending.id)) {
     karmaGain += 5;
     archive.unlockedEndings.push(ending.id);
@@ -1197,7 +1212,8 @@ function nextStep() {
 function showEnding(ending) {
   if (window.SFX) {
     SFX.play(ending.id === 'survival' ? 'survive' : 'death');
-    SFX.playBGM('ending');
+    // v0.9.8: 结局 BGM 慢渐入 3 秒，给玩家先看完结局名再听音乐
+    SFX.playBGM('ending', 3);
   }
   finalizeLife(ending);
   $('#ending-name').textContent = ending.name;
