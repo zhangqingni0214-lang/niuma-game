@@ -240,14 +240,16 @@ function simulateOne(charId, jobId, policy, withRescue) {
       if (state.character === 'ox') {
         state.stats.health = clamp(state.stats.health + 1, 0, 100);
       }
-      // Day 3 绩效
-      if (state.day === 3 && !state.bonusPaidDay7) {
+      // Day 7 绩效
+      if (state.day === 7 && !state.bonusPaidDay7) {
         state.bonusPaidDay7 = true;
         const cur = state.stats.salary, init = state.initialSalary;
-        if (cur >= init * 0.8) {
-          state.money += cur < init
-            ? Math.round(state.salaryAmount * 0.025 / 100) * 100
-            : Math.round((state.salaryAmount * cur) / 100 / 5);
+        if (cur < init * 0.9) {
+          state.money -= Math.round(state.salaryAmount * 0.025 / 100) * 100;
+        } else if (cur < init) {
+          state.money += Math.round(state.salaryAmount * 0.01 / 100) * 100;
+        } else {
+          state.money += Math.round((state.salaryAmount * cur) / 100 / 4);
         }
       }
     }

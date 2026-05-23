@@ -605,9 +605,17 @@ function showBonusModal(data, onClose) {
     titleEl.textContent = '⚠️ 绩效倒挂';
     iconEl.textContent = '📉';
     mainEl.textContent = `工资分 ${data.current}，比起步 ${data.initial} 还低`;
-    amountEl.textContent = '+¥0';
-    amountEl.classList.remove('positive');
-    amountEl.classList.add('zero');
+    if (data.penalty > 0) {
+      amountEl.textContent = `−¥${data.penalty}`;
+      amountEl.classList.remove('positive');
+      amountEl.classList.remove('zero');
+      amountEl.classList.add('negative');
+    } else {
+      amountEl.textContent = '+¥0';
+      amountEl.classList.remove('positive');
+      amountEl.classList.remove('negative');
+      amountEl.classList.add('zero');
+    }
     noteEl.textContent = REVERSE_QUIPS[Math.floor(Math.random() * REVERSE_QUIPS.length)];
   }
 
@@ -701,28 +709,30 @@ function advanceTime() {
       state.stats.health = clamp(state.stats.health + 1, 0, 100);
     }
 
-    // Day 3 绩效结算（原 Day 7，v0.9 调整为提前到 Day 3 节奏更紧）
-    // 公式：bonus = round(salaryAmount × currentSalary / 100 / 5)
-    // 容忍区间：工资分跌幅 ≤ 20% 时，保底绩效 = 月薪 × 2.5%（避免一跌就倒挂）
-    if (state.day === 3 && !state.bonusPaidDay7) {
+    // Day 7 绩效结算
+    // 公式：bonus = round(salaryAmount × currentSalary / 100 / 4)
+    // 容忍区间：工资分跌幅 ≤ 10% 时，保底绩效 = 月薪 × 1%
+    if (state.day === 7 && !state.bonusPaidDay7) {
       state.bonusPaidDay7 = true;
       const currentSalary = state.stats.salary;
       const initial = state.initialSalary;
-      const tolerance = initial * 0.8; // 容忍下限
+      const tolerance = initial * 0.9; // 容忍下限
 
       if (currentSalary < tolerance) {
-        // 跌幅 > 20% → 真倒挂
-        state.pendingBonusModal = { type: 'reverse', initial, current: currentSalary };
+        // 跌幅 > 10% → 真倒挂，扣月薪 × 2.5%（向百元取整）
+        const penalty = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+        if (penalty > 0) state.money -= penalty;
+        state.pendingBonusModal = { type: 'reverse', initial, current: currentSalary, penalty };
       } else if (currentSalary < initial) {
-        // 容忍区间内 → 保底绩效（月薪的 2.5%，向百元取整）
-        const minBonus = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+        // 容忍区间内 → 保底绩效（月薪的 1%，向百元取整）
+        const minBonus = Math.round((state.salaryAmount || 0) * 0.01 / 100) * 100;
         if (minBonus > 0) state.money += minBonus;
         state.pendingBonusModal = {
           type: 'paid', amount: minBonus, salary: currentSalary, minimal: true, initial
         };
       } else {
         // 正常绩效
-        const bonus = Math.round((state.salaryAmount * currentSalary) / 100 / 5);
+        const bonus = Math.round((state.salaryAmount * currentSalary) / 100 / 4);
         state.money += bonus;
         state.pendingBonusModal = { type: 'paid', amount: bonus, salary: currentSalary };
       }
@@ -1507,15 +1517,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 浏览器自动播放策略：首次进入页面时 BGM 会被拦截，
   // 注册一次性点击监听，用户第一次点任何地方就启动当前屏幕的 BGM。
+  // 用 capture 阶段，确保在按钮 onclick 切屏之前读到 active screen
+  // （否则用户点"今日投胎"会直接跳过 menu BGM，跑到 game 分支）。
   const kickBGM = () => {
     if (!window.SFX) return;
     const active = document.querySelector('.screen.active')?.id;
     if (active === 'screen-game') SFX.playBGM('game');
     else if (active === 'screen-ending') SFX.playBGM('ending');
     else SFX.playBGM('menu');
-    document.removeEventListener('click', kickBGM);
-    document.removeEventListener('touchstart', kickBGM);
+    document.removeEventListener('click', kickBGM, { capture: true });
+    document.removeEventListener('touchstart', kickBGM, { capture: true });
   };
-  document.addEventListener('click', kickBGM, { once: false });
-  document.addEventListener('touchstart', kickBGM, { once: false });
+  document.addEventListener('click', kickBGM, { capture: true });
+  document.addEventListener('touchstart', kickBGM, { capture: true });
 });

@@ -49,18 +49,20 @@ html, body {
 }
 .menu-hero-top {
   width: 100%;
-  flex: 0 0 35vh;
-  background: url('assets/horse_4x5.png') center / cover no-repeat;
+  flex: 0 0 37vh;
+  /* center top：图顶部贴上沿，马耳/马额头完整保留，多余裁底部桌面 */
+  background: url('assets/horse_4x5.png') center top / cover no-repeat;
   image-rendering: pixelated;
 }
 .menu-hero-bot {
   width: 100%;
-  flex: 0 0 35vh;
-  background: url('assets/ox_4x5.png') center / cover no-repeat;
+  flex: 0 0 37vh;
+  /* center top：牛角/牛头完整，裁掉底部桌面腰部 */
+  background: url('assets/ox_4x5.png') center top / cover no-repeat;
   image-rendering: pixelated;
 }
 .menu-mid {
-  flex: 0 0 30vh;          /* 中段 30vh，办公室背景被压缩适配 */
+  flex: 0 0 26vh;          /* 中段压到 26vh，把空间让给上下两张完整脸 */
   position: relative;
   background: url('assets/office_wide.png') center / cover no-repeat;
   image-rendering: pixelated;
@@ -78,11 +80,16 @@ html, body {
   background: linear-gradient(180deg, rgba(20,16,10,0.30) 0%, rgba(20,16,10,0.45) 100%);
 }
 #screen-menu .menu-card {
+  /* 绝对定位锚到 #screen-menu 几何中心，与三段背景解耦 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;              /* 覆盖通用 .menu-card 的 margin: 60px 16px，避免偏移 */
   width: 76%;
   max-width: 320px;
-  height: auto;           /* 高度按内容自适应，不再有底部空白 */
-  max-height: 38vh;       /* 上限防止过高 */
-  margin: 0 auto;
+  height: auto;           /* 高度按内容自适应 */
+  max-height: 80vh;       /* 上限防止极小屏溢出 */
   padding: 10px 14px 10px;
   background: #ecd9b9;
   border: 3px solid #2b2b2b;
@@ -93,7 +100,6 @@ html, body {
   align-items: center;
   gap: 4px;
   z-index: 2;
-  position: relative;
   overflow: hidden;
 }
 .menu-karma-badge { display: none; }
@@ -1226,6 +1232,7 @@ html, body {
 }
 .bonus-amount.positive { color: #2a7a2a; }
 .bonus-amount.zero { color: #999; }
+.bonus-amount.negative { color: #c0392b; }
 
 /* iOS 风顶部 Toast (日薪到账等轻提示) */
 .toast {
