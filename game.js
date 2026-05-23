@@ -954,8 +954,8 @@ function finalizeLife(ending) {
   archive.totalLives = Math.max(archive.totalLives, state.life);
 
   let karmaGain = state.day;
-  // v0.9.8: 通关结局额外 +20 业力（奖励"活下来了"的稀有度）
-  if (ending.id === 'survival') karmaGain += 20;
+  // v0.9.10: 通关结局额外 +10 业力
+  if (ending.id === 'survival') karmaGain += 10;
   if (!archive.unlockedEndings.includes(ending.id)) {
     karmaGain += 5;
     archive.unlockedEndings.push(ending.id);
