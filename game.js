@@ -274,7 +274,7 @@ function applyEffects(effects, ctx) {
     if (fine > 0) {
       state.money -= fine;
       state.snarkFine = (state.snarkFine || 0) + fine;
-      state.lastChoiceCosts.push({ type: 'snark', amount: fine, reason: pickSnarkReason() });
+      state.lastChoiceCosts.push({ type: 'snark', amount: fine, reason: pickSnarkReason(ev, choice) });
     }
   }
 
@@ -312,17 +312,76 @@ function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 // =====================
 // 扣款戏谑文案池
 // =====================
-const SNARK_REASONS = [
-  '老板觉得你"嗯"的语气不对',
-  'PM 群里 at 你两次没"收到"',
-  'HR 说你的微笑不达标',
-  '你那句话进了"言论档案"',
-  '微信响应慢于 30 秒，行政罚',
-  '本季度第 N 次嘴贱税',
-  '工位反思费（一次性）',
-  '团结氛围损失补偿金',
-  '老板朋友圈你没点赞',
-  '"情商培训"强制报名费'
+// v0.9.3: 扣款理由按事件 tag 分池，让"罚款原因"和事件场景对得上
+const SNARK_REASONS_BY_TAG = {
+  hr: [
+    'HR 标记你"团队意识有待提升"',
+    'HR 把这段录音存了档',
+    'HR 说她"听到了不太合适的发言"',
+    '你这句话被写进了背调记录',
+    'HR 在系统里给你打了"沟通态度"差评',
+    '"情商培训"强制报名费'
+  ],
+  boss: [
+    '老板觉得你"嗯"的语气不对',
+    '老板朋友圈你没点赞',
+    '老板在群里发"你看看这态度"',
+    '老板把你 360 评分调低了',
+    '老板让人去"了解一下"你最近',
+    '老板眼神里写着"明年别在这"'
+  ],
+  pm: [
+    'PM 群里 at 你两次没"收到"',
+    'PM 把你的回复贴进项目复盘',
+    'PM 跟你老板说"这哥们儿不好沟通"',
+    'PM 把你的话截图发到了产品群'
+  ],
+  client: [
+    '客户给你公司发了投诉邮件',
+    '客户跟你老板说"换个人对接"',
+    '客户把你的回复截图发到了群里',
+    '客户砍掉下季度预算给你看'
+  ],
+  team_lead: [
+    '下属把你这句话录音存档',
+    '团队 360 评分里"管理风格"扣了 2 分',
+    'HR 给你预约了"领导力反思"课程'
+  ],
+  team: [
+    '团结氛围损失补偿金',
+    '同事在小群发了你的"金句"截图',
+    '同事开始绕路避开茶水间',
+    '你被踢出了部门小群'
+  ],
+  meeting: [
+    '你的发言被记进了会议纪要',
+    '老板会后说"今天有人态度有问题"',
+    '会议录音被转发到了 HR',
+    '会议室一片寂静，气氛凝固 30 秒'
+  ],
+  overtime: [
+    '加班记录里你被备注"配合度不足"',
+    'OnCall 评分被调低',
+    '老板第二天没跟你打招呼'
+  ],
+  zeitgeist: [
+    '"思想觉悟"考核打分',
+    '"组织认同感"指标扣 5 分'
+  ],
+  // 兜底：通用嘴贱税
+  default: [
+    '你那句话进了"言论档案"',
+    '本季度第 N 次嘴贱税',
+    '工位反思费（一次性）',
+    '微信响应慢于 30 秒，行政罚',
+    '"情商培训"强制报名费'
+  ]
+};
+
+// 优先级：越具体的 tag 越优先匹配
+const SNARK_TAG_PRIORITY = [
+  'hr', 'client', 'team_lead', 'boss', 'pm',
+  'team', 'meeting', 'overtime', 'zeitgeist'
 ];
 
 const MEDICAL_REASONS_1X = [
@@ -339,8 +398,22 @@ const MEDICAL_REASONS_3X = [
   '体检报告解读 + 推荐疗法'
 ];
 
-function pickSnarkReason() {
-  return SNARK_REASONS[Math.floor(Math.random() * SNARK_REASONS.length)];
+function pickSnarkReason(ev, choice) {
+  // 1. 选项自带 snarkReason → 优先
+  if (choice?.snarkReason) return choice.snarkReason;
+
+  // 2. 按事件 tag 匹配（优先级倒序）
+  const tags = ev?.tags || [];
+  for (const t of SNARK_TAG_PRIORITY) {
+    if (tags.includes(t) && SNARK_REASONS_BY_TAG[t]) {
+      const pool = SNARK_REASONS_BY_TAG[t];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+  }
+
+  // 3. 兜底
+  const pool = SNARK_REASONS_BY_TAG.default;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 function pickMedicalReason(rounds) {
   let pool = MEDICAL_REASONS_1X;
@@ -928,6 +1001,12 @@ function showEnding(ending) {
   $('#ending-name').textContent = ending.name;
   $('#ending-summary').textContent = ending.summary;
   $('#ending-day').textContent = `存活 ${state.day - (state.timeSlot === 0 && state.day > 1 ? 1 : 0)} 天`;
+  // v0.9.3: 终局触发条件清晰化
+  const triggerEl = $('#ending-trigger');
+  if (triggerEl) {
+    triggerEl.textContent = ending.trigger ? '触发：' + ending.trigger : '';
+    triggerEl.style.display = ending.trigger ? '' : 'none';
+  }
   $('#ending-stats').innerHTML = `
     健康 ${state.stats.health} · 压力 ${state.stats.stress} · 心情 ${state.stats.mood}<br>
     疲劳 ${state.stats.fatigue} · 技能 ${state.stats.skill} · 工资 ${state.stats.salary}<br>
