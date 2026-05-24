@@ -74,7 +74,10 @@ function checkEnding(state) {
     character: state.character,
     job: state.profile.jobId,
     snarkCount: state.history.snarkCount,
+    snarkWorkCount: state.history.snarkWorkCount,
+    snarkLifeCount: state.history.snarkLifeCount,
     sideHustleCount: state.history.sideHustleCount,
+    karma: 0, // sim 没 archive，用 0 让 horse_lone_wolf 容易触发
   };
   for (const ending of [...W.ENDINGS].sort((a, b) => b.priority - a.priority)) {
     if (ending.condition(state.stats, ctx)) return ending;

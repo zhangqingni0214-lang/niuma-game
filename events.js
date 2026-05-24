@@ -3454,6 +3454,242 @@ window.EVENTS = [
         effects: { mood: +15, salary: -5, stress: -3 },
         result: '老板没发邮件。这件事不了了之。' }
     ]
+  },
+
+  // ========================================
+  // v1.0 角色专属事件 - 🐴 小马 (4 条)
+  // ========================================
+
+  {
+    id: 'horse_late_night_rant',
+    title: '凌晨小红书发癫',
+    timeSlot: 2, tags: ['life', 'social'],
+    characters: ['horse'],
+    minDay: 3,
+    text: '凌晨 2:17，你打开小红书，"创建笔记"。手指悬在键盘上 0.3 秒，然后开始打字。800 字之后你点了"发布"。',
+    choices: [
+      {
+        text: '标题《我就是不想干了》，配图工位夜景',
+        snark: true, tags: ['snark', 'social'],
+        effects: { mood: +18, stress: -8, fatigue: +5 },
+        result: '早起来看：转发 1.2k，关注 +400。评论区第一条："姐你是不是在我们公司？"'
+      },
+      {
+        text: '标题《公司给我的精神 PUA 大全》，列了 12 条',
+        snark: true, tags: ['snark', 'social', 'side_work'],
+        effects: { mood: +20, stress: -5, money: +88, fatigue: +8 },
+        result: '一夜爆 2.3k 转发。早上 HR 私聊："那个号是你吗？" 你回："您怎么这么熟？"'
+      },
+      {
+        text: '写到一半删了，关电脑',
+        effects: { fatigue: +8, mood: -3, stress: +5 },
+        result: '你躺在床上盯天花板。"我连发都不敢发，我真没救了。" 然后又打开了。'
+      }
+    ]
+  },
+
+  {
+    id: 'horse_screenshot_war',
+    title: '截图战争',
+    timeSlot: 1, tags: ['boss', 'snark'],
+    characters: ['horse'],
+    minDay: 5,
+    text: '老板上周在大会上画的饼："明年人均涨薪 30%。" 你截了图，存到桌面"证据"文件夹——文件夹里已经有 17 张。',
+    choices: [
+      {
+        text: '在部门小群发："存档供大家参考。" 配老板原话截图。',
+        snark: true, tags: ['snark', 'boss'],
+        effects: { mood: +22, stress: -8, salary: -15 },
+        result: '群里 7 个人秒发"哈哈哈"。老板第二天单独叫你聊："小同志，群里说话注意分寸。"'
+      },
+      {
+        text: '发朋友圈：屏蔽老板，公司同事可见。',
+        snark: true, tags: ['snark', 'social'],
+        effects: { mood: +15, stress: -5, salary: -8 },
+        result: '不知道哪个同事截图给老板了。第二天他朋友圈把你屏蔽了。'
+      },
+      {
+        text: '存着，等离职那天群发',
+        effects: { mood: +10, stress: +3 },
+        result: '你把文件夹命名改成"离职大礼包"。睡觉时心情好了一点。'
+      }
+    ]
+  },
+
+  {
+    id: 'horse_resign_drama',
+    title: '朋友圈裸辞小作文',
+    timeSlot: 2, tags: ['life', 'social'],
+    characters: ['horse'],
+    minDay: 4,
+    text: '你工资分跌到不能再低。你打开朋友圈，开始写小作文：《为什么我要辞职》。写到 600 字时你停下，盯着屏幕。',
+    choices: [
+      {
+        text: '发了。3 分钟撤回。再发。再撤回。再发。',
+        snark: true, tags: ['snark', 'social'],
+        effects: { mood: +18, stress: -3, salary: -10 },
+        result: '最后留在朋友圈里的版本是第 6 版，800 字。点赞 47 个。老板没点。'
+      },
+      {
+        text: '发了，不撤回',
+        snark: true, tags: ['snark', 'social'],
+        effects: { mood: +25, stress: -10, salary: -20, fatigue: +5 },
+        result: '老板早上叫你 1:1。"咱们好聚好散吧。" 你说"我还没说要走"。他说"你已经说了"。'
+      },
+      {
+        text: '存到草稿。第二天打卡上班。',
+        effects: { mood: -8, stress: +8, fatigue: +5 },
+        result: '上班路上你又打开草稿读了一遍。修改了三个错别字。你已经哭过两次了。'
+      }
+    ]
+  },
+
+  {
+    id: 'horse_anonymous_complaint',
+    title: '匿名投诉信',
+    timeSlot: 1, tags: ['hr', 'boss'],
+    characters: ['horse'],
+    minDay: 7, once: true,
+    text: 'HR 在大群发："公司收到一封匿名投诉信，详述了部门管理问题。请相关同事自觉前来配合调查。" 信是你写的。',
+    choices: [
+      {
+        text: '主动找 HR："信是我写的。咱们聊。"',
+        snark: true, tags: ['snark', 'hr'],
+        effects: { mood: +18, stress: +10, salary: -20 },
+        result: 'HR 愣了三秒："你……怎么直接承认了？" 你说"反正你们也查得出来"。'
+      },
+      {
+        text: '什么都不说，假装没看到群消息',
+        effects: { stress: +15, mood: -5, fatigue: +5 },
+        result: '一周后 HR 找你单独聊。她没明说，但她的眼神在等你承认。'
+      },
+      {
+        text: '在群里发："请问能否查到 IP？我也想知道是哪位勇士。"',
+        snark: true, tags: ['snark', 'hr'],
+        effects: { mood: +22, stress: -3, salary: -25 },
+        result: '群里 8 个人发了笑哭表情。HR 默默关闭了群讨论功能。'
+      }
+    ]
+  },
+
+  // ========================================
+  // v1.0 角色专属事件 - 🐂 小牛 (4 条)
+  // ========================================
+
+  {
+    id: 'ox_brought_into_extra',
+    title: '又被甩烂货',
+    timeSlot: 0, tags: ['team'],
+    characters: ['ox'],
+    minDay: 3,
+    text: '同事小李走到你工位："这块你最擅长了，帮我接一下？" 你看了下自己的日程——已经满了三个项目。',
+    choices: [
+      {
+        text: '"那个……我下周也满了，能不能找别人？"',
+        snark: true, tags: ['snark', 'refuse'],
+        effects: { mood: +12, stress: -3, salary: -5 },
+        result: '小李愣了一下："你不是一直都帮我吗？" 你不知道怎么回答。'
+      },
+      {
+        text: '"好的，今晚加班搞。"',
+        tags: ['submissive', 'overtime'],
+        effects: { fatigue: +15, health: -3, salary: +5, mood: -8 },
+        result: '你接了。小李拍拍你肩："你最靠谱。" 然后转身又把另一个活甩给了新来的实习生。'
+      },
+      {
+        text: '"小李，你这个我已经接了三次了，能不能换换？"',
+        snark: true, tags: ['snark'],
+        effects: { mood: +15, stress: +3, salary: -3 },
+        result: '小李沉默了两秒："那……行吧。" 走了。你不确定他是真理解还是在记仇。'
+      }
+    ]
+  },
+
+  {
+    id: 'ox_silent_overtime',
+    title: '默默加班到天亮',
+    timeSlot: 2, tags: ['overtime'],
+    characters: ['ox'],
+    minDay: 3,
+    text: '凌晨 5:14。你最后一封邮件发出去。窗外天亮了。你看了一眼工位上同事留的便利贴："明早 9 点见。" 距离 9 点还有 3 小时 46 分。',
+    choices: [
+      {
+        text: '工位上眯 20 分钟，然后去刷牙、装作刚来。',
+        tags: ['submissive', 'overtime'],
+        effects: { fatigue: +25, health: -10, salary: +8, mood: -5 },
+        result: '9 点开会时你的脸已经麻木。老板说"你看起来很投入"。你回"嗯"。'
+      },
+      {
+        text: '打车回家睡 2 小时，迟到也认。',
+        effects: { money: -80, fatigue: -3, health: -3, salary: -5 },
+        result: '你 10:30 才到公司。HR 系统扣了半天工资。你坐下后睡着了 5 分钟。'
+      },
+      {
+        text: '直接给老板请病假："发烧。"',
+        snark: true, tags: ['snark', 'refuse'],
+        effects: { mood: +15, stress: -5, salary: -10, health: +5 },
+        result: '老板没回。但他知道你昨晚发了凌晨 5 点的邮件。这个借口太透了。'
+      }
+    ]
+  },
+
+  {
+    id: 'ox_quiet_recognition',
+    title: '老板路过点头',
+    timeSlot: 1, tags: ['boss'],
+    characters: ['ox'],
+    minDay: 5,
+    text: '你在工位低头改文档，第 23 版。老板路过，停了 0.5 秒，说："你这态度很好。" 然后走了。',
+    choices: [
+      {
+        text: '默默继续改。心里偷偷高兴。',
+        tags: ['submissive', 'flatter'],
+        effects: { mood: +12, fatigue: +5, salary: +5, health: +1 },
+        result: '你那天文档改到了第 27 版。老板没再来。但你那一刻的满足感持续到了下班。'
+      },
+      {
+        text: '抬头："谢谢老板！您具体是指哪方面？"',
+        tags: ['flatter', 'kpi_grind'],
+        effects: { stress: +3, salary: +8, mood: +5 },
+        result: '老板说"细节做得不错"。你后来发现他指的其实是另一个同事的文档。'
+      },
+      {
+        text: '心里想："就这点表扬。" 嘴上"嗯"。',
+        snark: true, tags: ['snark'],
+        effects: { mood: +8, stress: -3, salary: -5 },
+        result: '老板回头看了你一眼。你装作专心改文档。这一眼后来在 360 评估里出现。'
+      }
+    ]
+  },
+
+  {
+    id: 'ox_team_lead_dumps',
+    title: '下属把活甩你',
+    timeSlot: 0, tags: ['team_lead', 'team'],
+    characters: ['ox'],
+    jobs: ['team_lead'],
+    minDay: 3,
+    text: '下属小张走过来："组长，我下周休陪产假，这个项目的代码我先休了再写，你看怎么办？" 你打开他的项目——50% 没写。',
+    choices: [
+      {
+        text: '"那我先接着写一下。" 默默接锅。',
+        tags: ['submissive', 'overtime'],
+        effects: { fatigue: +20, health: -5, skill: +5, salary: +3, mood: -8 },
+        result: '一周加班到凌晨。小张休完假回来说："写完了？太好了。" 你笑了笑没说话。'
+      },
+      {
+        text: '"那个……能不能你先写完再休？陪产假晚一周也可以吧？"',
+        snark: true, tags: ['snark'],
+        effects: { mood: +12, stress: +5, salary: -3 },
+        result: '小张脸色变了："组长，陪产假是法定的。" 你哑口无言。三天后他举报你"打压员工"。'
+      },
+      {
+        text: '"行，你休你的。我安排其他人接。"',
+        tags: ['submissive'],
+        effects: { stress: +8, salary: +5, mood: -5 },
+        result: '你又找了两个下属接活。他们都说"我手头也满"。最后还是你自己写。'
+      }
+    ]
   }
 
 ];

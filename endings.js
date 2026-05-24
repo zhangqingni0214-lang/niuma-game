@@ -96,6 +96,46 @@ window.ENDINGS = [
     priority: 88,
     condition: (s, ctx) => ctx.job === 'hr' && ctx.day >= 5 && s.salary <= 25
   },
+
+  // v1.0 角色专属：小马 - 网红出圈
+  {
+    id: 'horse_internet_celebrity',
+    name: '网红出圈·公司劝你删号',
+    trigger: '小马 + 怼 ≥ 10 次 + 第 10 天后 + 副业 ≥ 3 次 — 你的小作文火了',
+    summary: '你的小红书 30 万粉了。公司 HR 约你"聊一聊"，"那个号能不能注销？" 你说"我可以注销，但您先给我写一份《离职 N+1 协议》好不好？" 三天后你拿着协议出门，账号还在更。新简介："前 XX 公司打工人，现专职吐槽。"',
+    priority: 96,
+    condition: (s, ctx) => ctx.character === 'horse' && (ctx.snarkCount || 0) >= 10 && ctx.day >= 10 && (ctx.sideHustleCount || 0) >= 3
+  },
+
+  // v1.0 角色专属：小马 - 独狼离场
+  {
+    id: 'horse_lone_wolf',
+    name: '独狼离场·没人愿意带你',
+    trigger: '小马 + 怼 ≥ 12 次 + 业力 < 50 + 第 7 天前 — 嘴硬到没人罩你',
+    summary: '老板私下找你："小同志，你能力是有的，但这个团队……可能不适合你。" 你想反驳，但发现没人和你站一队。HR 那边已经准备好 N+0.5 协议。你走的时候没人来送，茶水间安静得像图书馆。',
+    priority: 94,
+    condition: (s, ctx) => ctx.character === 'horse' && (ctx.snarkCount || 0) >= 12 && (ctx.karma || 0) < 50 && ctx.day < 7
+  },
+
+  // v1.0 角色专属：小牛 - 升职带新人
+  {
+    id: 'ox_promoted_to_supervisor',
+    name: '升职带新人·开始甩烂货',
+    trigger: '小牛 + 工资分 ≥ 75 + 疲劳 ≥ 60 + 第 12 天后 — 你升了，然后开始甩烂货',
+    summary: '老板宣布："小同志升职为小组长，年终奖加 15%。" 你第二天就被分了三个下属。一周后你对下属说："这块你最擅长了，帮我接一下？" 下属脸僵了 0.3 秒，然后说"好的组长"。你在那 0.3 秒里看见了自己一年前的样子。',
+    priority: 96,
+    condition: (s, ctx) => ctx.character === 'ox' && s.salary >= 75 && s.fatigue >= 60 && ctx.day >= 12
+  },
+
+  // v1.0 角色专属：小牛 - 加班抑郁请病假
+  {
+    id: 'ox_loyal_burnout',
+    name: '请了三个月病假·回来发现工位没了',
+    trigger: '小牛 + 疲劳 ≥ 85 + 心情 ≤ 20 + 第 7 天后 — 默默扛到崩溃',
+    summary: '心理医生给你开了"重度焦虑+抑郁"的诊断。你请了三个月病假。三个月后你回办公室，发现你的工位上坐着一个新人，桌上是你那盆没死的发财树。HR 笑着说"你回来了？" 没有提工位的事。你走到茶水间倒了一杯热水，喝完默默坐在会议室。',
+    priority: 96,
+    condition: (s, ctx) => ctx.character === 'ox' && s.fatigue >= 85 && s.mood <= 20 && ctx.day >= 7
+  },
   // 通关结局：第 14 天结束没死
   {
     id: 'survival',

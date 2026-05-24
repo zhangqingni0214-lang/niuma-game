@@ -154,6 +154,8 @@ function pickEvent() {
     if (e.pool === 'side_hustle' && !unlockedSkills.has('side_hustle')) return false;
     // 职业过滤
     if (e.jobs && !e.jobs.includes(jobId)) return false;
+    // v1.0 角色过滤：事件加 characters: ['horse'] 后只对该角色出现
+    if (e.characters && !e.characters.includes(state.character)) return false;
     return true;
   });
 
@@ -857,7 +859,10 @@ function checkEnding() {
     character: state.character,
     job: state.profile.jobId,
     snarkCount: state.history.snarkCount,
-    sideHustleCount: state.history.sideHustleCount
+    snarkWorkCount: state.history.snarkWorkCount,
+    snarkLifeCount: state.history.snarkLifeCount,
+    sideHustleCount: state.history.sideHustleCount,
+    karma: archive.karma // v1.0: 部分结局看业力（如 horse_lone_wolf）
   };
   for (const ending of [...window.ENDINGS].sort((a, b) => b.priority - a.priority)) {
     if (ending.condition(state.stats, ctx)) return ending;
