@@ -3680,8 +3680,9 @@ window.EVENTS = [
     choices: [
       {
         text: '"那个……我下周也满了，能不能找别人？"',
-        snark: true, tags: ['snark', 'refuse'],
-        effects: { mood: +12, stress: -3, salary: -5 },
+        // 礼貌推回不算嘴硬，去 snark 避免 2.5% 月薪罚款 + ox trait 重锤
+        tags: ['refuse'],
+        effects: { mood: +10, stress: -3, salary: -3 },
         result: '小李愣了一下："你不是一直都帮我吗？" 你不知道怎么回答。'
       },
       {
@@ -3692,8 +3693,9 @@ window.EVENTS = [
       },
       {
         text: '"小李，你这个我已经接了三次了，能不能换换？"',
-        snark: true, tags: ['snark'],
-        effects: { mood: +15, stress: +3, salary: -3 },
+        // 用事实说话不算嘴硬，去 snark；保留小幅 salary 代价（得罪同事）
+        tags: ['refuse'],
+        effects: { mood: +12, stress: +3, salary: -2 },
         result: '小李沉默了两秒："那……行吧。" 走了。你不确定他是真理解还是在记仇。'
       }
     ]
