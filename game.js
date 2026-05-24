@@ -297,6 +297,20 @@ function applyEffects(effects, ctx) {
     if (adj.fatigue && adj.fatigue > 0) adj.fatigue = Math.ceil(adj.fatigue / 2);
   }
 
+  // ===== v1.1 Tier 5 渡劫技能 =====
+
+  // 政治动物：政治类选项再 +5 salary（叠加 office_politics 的 +3 = +8）
+  if (unlocked.has('political_animal') &&
+      (chTags.includes('politics') || choice?.requiredSkill === 'office_politics')) {
+    adj.salary = (adj.salary || 0) + 5;
+  }
+
+  // 斜杠流派：副业事件 money 收入 +50%
+  if (unlocked.has('side_hustle_pro') &&
+      (ev?.pool === 'side_hustle' || evTags.includes('side') || chTags.includes('side_work'))) {
+    if (adj.money && adj.money > 0) adj.money = Math.round(adj.money * 1.5);
+  }
+
   // v0.9.6 全局难度调节 - 给玩家活路（不破坏单事件的相对设计）
   // 模拟器数据显示：salary 负向累积过快导致 70%+ 玩家 day-5 前被开除
   if (adj.salary && adj.salary < 0)   adj.salary  = Math.ceil(adj.salary * 0.7);
@@ -320,11 +334,25 @@ function applyEffects(effects, ctx) {
     }
   }
 
+  // v1.1 钝化术：心情永远 ≥ 30，但上限锁 90（兜底+封顶的二级人格）
+  if (unlocked.has('numb_immune')) {
+    state.stats.mood = clamp(state.stats.mood, 30, 90);
+  }
+
   // 怼老板扣月薪：snark 选项扣月薪的 2.5%（四舍五入到百元）
   // v0.9.6 小马专属：罚款 ×0.8（社畜里的小老板娘，骂得起）
+  // v1.1 律师朋友：work 场景再 -50%；政治动物：再 -30%（叠加）
   if (choice?.snark) {
     let fine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
     if (state.character === 'horse') fine = Math.round(fine * 0.8 / 100) * 100;
+    // 律师朋友：work 场景 snark 罚款 ×0.5
+    if (unlocked.has('lawyer_friend') && isWorkScopeEvent(ev)) {
+      fine = Math.round(fine * 0.5 / 100) * 100;
+    }
+    // 政治动物：怼老板罚款再 ×0.7
+    if (unlocked.has('political_animal')) {
+      fine = Math.round(fine * 0.7 / 100) * 100;
+    }
     if (fine > 0) {
       state.money -= fine;
       state.snarkFine = (state.snarkFine || 0) + fine;

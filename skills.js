@@ -124,6 +124,59 @@ window.SKILLS = [
     type: 'meta',
     description: '一个跟头十万八千里，财不离身。新一世继承上一世存款的 10%。',
   },
+
+  // ===== Tier 5 · 渡劫（v1.1 新增 — 60-150 业力）=====
+  // 长线追求：5 个高级技能，让业力积累的目标感持续到 10+ 局
+  {
+    id: 'boss_reading',
+    tier: 5,
+    name: '读心术',
+    icon: '👁',
+    cost: 60,
+    requires: ['promotion_radar'],
+    type: 'passive',
+    description: '老板嘴里说什么，眼里写什么，你都看得见。老板/HR 类事件先看 result 再选。',
+  },
+  {
+    id: 'lawyer_friend',
+    tier: 5,
+    name: '我朋友是律师',
+    icon: '⚖️',
+    cost: 80,
+    requires: ['office_politics', 'thick_skin'],
+    type: 'passive',
+    description: '法盲怕的就是这句话。HR / 客户 / 老板事件的 snark 扣款减半，再加一句"我让我律师朋友看看"震慑感。',
+  },
+  {
+    id: 'side_hustle_pro',
+    tier: 5,
+    name: '斜杠流派',
+    icon: '⚡',
+    cost: 100,
+    requires: ['side_hustle', 'fishing_zen'],
+    type: 'passive',
+    description: '副业的钱不比主业少。所有副业事件 money 收入 +50%，解锁第二副业池（待开发）。',
+  },
+  {
+    id: 'political_animal',
+    tier: 5,
+    name: '政治动物',
+    icon: '🦊',
+    cost: 120,
+    requires: ['office_politics', 'promotion_radar'],
+    type: 'passive',
+    description: '在公司养成的二级人格。政治类选项额外 +5 工资分（叠加原 +3，总共 +8），怼老板罚款再减 30%。',
+  },
+  {
+    id: 'numb_immune',
+    tier: 5,
+    name: '钝化术',
+    icon: '🪨',
+    cost: 150,
+    requires: ['iron_will', 'fishing_zen'],
+    type: 'passive',
+    description: '万事不动心。心情永远 ≥ 30（兜底），但代价是上限锁 90。终身 buff，激进玩家的保险绳。',
+  },
 ];
 
 // 判断某技能是否满足前置条件（OR 关系：requires 里任一项被解锁即可）
