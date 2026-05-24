@@ -588,7 +588,7 @@ window.EVENTS = [
       {
         text: '【社交蝴蝶】反建议改成读书会，主动主持，全程读《劳动法》第 36 条',
         hidden: true, requiredSkill: 'social_butterfly', snark: true,
-        effects: { mood: +15, stress: -3, salary: -10 },
+        effects: { mood: +15, stress: -3, salary: -10, money: +88 },
         result: 'HR 哽住。三天后团建被悄悄取消。同事悄悄给你转了 88 块红包。'
       }
     ]
@@ -2716,7 +2716,7 @@ window.EVENTS = [
     text: '客户领导发来微信："麻烦帮我女儿改一下简历，她准备校招。" 附件 1.3MB，PDF。',
     choices: [
       { text: '"没问题，今晚发您。" 然后真改了。', tags: ['flatter', 'overtime'],
-        effects: { fatigue: +6, money: 0, salary: +8, mood: -3 },
+        effects: { fatigue: +6, money: +200, salary: +8, mood: -3 },
         result: '客户领导隔天发了红包 ¥200。你接了。下次他还会来。' },
       { text: '"我不专业，建议找校招顾问。"', snark: true, tags: ['snark', 'refuse'],
         effects: { mood: +10, salary: -12 },
@@ -3044,8 +3044,8 @@ window.EVENTS = [
   {
     id: 'spring_festival_ticket',
     title: '春节抢票',
-    timeSlot: 1, tags: ['holiday', 'commute'], once: true,
-    text: '12306 三个时段，你点击 47 次"提交"，全部"候补中"。隔壁工位的同事 30 秒前抢到了。',
+    timeSlot: 1, tags: ['holiday', 'commute', 'family'], once: true,
+    text: '12306 三个时段，你点击 47 次"提交"，全部"候补中"。隔壁工位的同事 30 秒前抢到了。你妈早上发来语音："今年回不回？我好准备菜。"',
     choices: [
       { text: '加钱找抢票软件，¥150 加速。', tags: ['shop'],
         effects: { money: -150, mood: +5, stress: -3 },
@@ -3060,7 +3060,12 @@ window.EVENTS = [
         },
         snark: true, tags: ['snark', 'refuse'],
         effects: { mood: -8, stress: +5 },
-        result: '妈打来电话哭了 10 分钟。你最后还是花 ¥3000 买的票。' }
+        // 修：result 与 effects 一致（不花钱，但妈难过 + 家族群施压）；不再瞎报扣了 ¥3000
+        result: {
+          default: '妈打来电话哭了 10 分钟。家族群三天没人理你。',
+          horse: '妈打来电话哭了 10 分钟。你挂了，去刷小红书。家族群三天没人理你。',
+          ox: '妈打来电话哭了 10 分钟。你听到一半也哭了，但还是没买票。'
+        } }
     ]
   },
 
@@ -3327,11 +3332,11 @@ window.EVENTS = [
         effects: { money: -1500, mood: -5, fatigue: +3 },
         result: '下属们群发"谢谢组长 ❤️"。但你这周存款只剩 ¥800。' },
       { text: '"找 HR 报销，公司预算。"', tags: ['kpi_grind'],
-        effects: { stress: +3, salary: +3 },
+        effects: { stress: +3, salary: +3, money: -1500 },
         result: 'HR 说"团建超出预算，要老板特批"。你最后还是自己出了。' },
       { text: '"AA 啊，咱们成年人。"', snark: true, tags: ['snark'],
-        effects: { mood: +12, stress: -3, salary: -3 },
-        result: '下属们脸僵了。但你那 ¥1500 还是 AA 分摊了。' }
+        effects: { mood: +12, stress: -3, salary: -3, money: -300 },
+        result: '下属们脸僵了。但你那 ¥1500 还是 AA 分摊了——你头上 ¥300。' }
     ]
   },
 
