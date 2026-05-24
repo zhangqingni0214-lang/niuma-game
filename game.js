@@ -390,6 +390,35 @@ function applyEffects(effects, ctx) {
   if (unlocked.has('fishing_zen') && state.stats.mood < 40) {
     state.stats.mood = 40;
   }
+
+  // ===== 选项特殊机制 =====
+
+  // dailyWageCost: 扣一天日薪（用于"请病假"等行为）
+  if (choice?.dailyWageCost) {
+    const dayWage = Math.round((state.salaryAmount || 0) / 22);
+    if (dayWage > 0) {
+      state.money -= dayWage;
+      state.lastChoiceCosts.push({
+        type: 'daywage',
+        amount: dayWage,
+        reason: '请病假，扣一天日薪'
+      });
+    }
+  }
+
+  // clientComplaintChance: 按概率随机触发客户投诉扣款
+  // 用法：choice.clientComplaintChance = 0.3 (30%)
+  //      choice.complaintAmount = 200 (默认 200)
+  //      choice.complaintReason = 自定义文案（可选）
+  if (choice?.clientComplaintChance && Math.random() < choice.clientComplaintChance) {
+    const amount = choice.complaintAmount || 200;
+    state.money -= amount;
+    state.lastChoiceCosts.push({
+      type: 'client',
+      amount,
+      reason: choice.complaintReason || '客户内部投诉，公司扣款（工资分 +10 已入账）'
+    });
+  }
 }
 
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
@@ -777,8 +806,11 @@ function showDeductionModal(costs, onClose) {
     const row = document.createElement('div');
     row.className = 'deduction-item';
     const recoverTag = c.recover ? `<span class="deduction-recover">健康 +${c.recover}</span>` : '';
+    // 类型 icon：snark 嘴硬 / medical 看病 / daywage 请假 / client 客户投诉
+    const iconMap = { snark: '💼', medical: '🏥', daywage: '📅', client: '📞' };
+    const icon = iconMap[c.type] || '💼';
     row.innerHTML = `
-      <span class="deduction-reason">${c.type === 'snark' ? '💼' : '🏥'} ${c.reason} ${recoverTag}</span>
+      <span class="deduction-reason">${icon} ${c.reason} ${recoverTag}</span>
       <span class="deduction-amount">−¥${c.amount}</span>
     `;
     listEl.appendChild(row);

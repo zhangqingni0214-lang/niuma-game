@@ -694,7 +694,7 @@ window.EVENTS = [
   {
     id: 'sick_day',
     title: '感冒发烧',
-    tags: ['health'],
+    tags: ['health', 'boss'],  // 加 boss tag，让 snark 罚款理由走 work-boss 池（"老板觉得态度不对"等）而不是生活兜底
     timeSlot: 0,
     text: '你 38.5 度，喉咙像被砂纸磨过。打开钉钉，看着"请假"按钮犹豫。今天有个评审会，老板说过"这个会很重要"。',
     choices: [
@@ -705,8 +705,11 @@ window.EVENTS = [
           ox: '请病假，附体温截图，"那个……38.5 度，对不起。"'
         },
         snark: true,
-        effects: { health: +10, fatigue: -15, salary: -5, mood: +12, money: -50 },
-        result: '老板回"好好休息"。三分钟后又问"会上你那部分能不能让小王代替"。你回"小王也病了"。'
+        // 请病假本身只扣"今天没上班的那一天日薪"，不再扣买药 ¥50
+        // snark 罚款保留，对应那句"病假是法定权利"嘴硬的代价
+        dailyWageCost: true,
+        effects: { health: +10, fatigue: -15, salary: -5, mood: +12 },
+        result: '老板回"好好休息"。三分钟后又问"会上你那部分能不能让小王代替"。你回"小王也病了"。HR 在系统里给那句"法定权利"打了个标记——情商培训费扣了一笔。'
       },
       {
         text: '硬扛去开会',
@@ -1891,8 +1894,12 @@ window.EVENTS = [
       {
         text: '"加急费 5000，今晚改完。"',
         snark: true,
-        effects: { mood: +10, stress: +8, money: +3000, fatigue: +20 },
-        result: '甲方砍到 3000。你接了。这是你这周最值的一次熬夜。'
+        // 不再直接给玩家加 money，改成 salary +10 工资分
+        // 30% 概率随机触发"客户投诉"扣公司 ¥200（出扣款通知时附带说明"工资分 +10 已入账"）
+        effects: { mood: +10, stress: +8, salary: +10, fatigue: +20 },
+        clientComplaintChance: 0.3,
+        complaintAmount: 200,
+        result: '甲方咬牙付了，你工资分 +10 入账。但 30% 概率他会在内部群投诉你"对接不灵活"——HR 那边盯着呢。'
       },
       {
         text: '【厚脸皮】关电脑，群里发一句"已下班"',
