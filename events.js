@@ -203,15 +203,23 @@ window.EVENTS = [
   {
     id: 'fishing_caught',
     title: '老板从背后走过',
-    tags: ['leisure'],
+    tags: ['leisure', 'boss'],
     timeSlot: 1,
     text: '你正在小红书看《35 岁失业转型做手冲咖啡半年记》，看得入神。一张刷屏图：中年男人在丽江开店，月入两万，配文"这才是生活"。你听见身后有脚步声，闻到老板的须后水。',
     choices: [
       {
-        text: '直视他："您看，这就是您画的饼最终长成的样子。"',
+        text: {
+          default: '直视他："您看，这就是您画的饼最终长成的样子。"',
+          horse: '直视他："您看，这就是您画的饼最终长成的样子。"',
+          ox: '深吸一口气："老板，我就……瞄一眼。"'
+        },
         snark: true,
         effects: { mood: +15, stress: -5, salary: -12 },
-        result: '老板顿了两秒，没说话，走了。你不知道这是赞许还是死缓。'
+        result: {
+          default: '老板顿了两秒，没说话，走了。',
+          horse: '老板顿了两秒，没说话，走了。你不知道这是赞许还是死缓。',
+          ox: '老板没说话，但你听见他在工位上重重叹了口气。'
+        }
       },
       {
         text: 'Alt+Tab 切回 Jira，但手抖按错了快捷键，反而打开了 BOSS 直聘',
@@ -219,10 +227,28 @@ window.EVENTS = [
         result: '老板看了一眼，转身走了。你猜测他在心里给你的离职日期打了草稿。'
       },
       {
-        text: '"在做行业调研，研究下一代员工流失方向。"',
+        text: {
+          default: '"在做行业调研，研究下一代员工流失方向。"',
+          horse: '"在做行业调研，研究下一代员工流失方向。"',
+          ox: '"在……研究行业，给您参考。"'
+        },
         snark: true,
         effects: { stress: +3, salary: -3, mood: +6 },
         result: '他凑过来看了一眼，"丽江房价多少？" 你说"比这里便宜得多"。'
+      },
+      // A 机制 - 小马专属：阴阳到底
+      {
+        text: '"老板，您要不要也看看？说不定您比我更需要。"',
+        character: 'horse', snark: true, tags: ['snark', 'boss'],
+        effects: { mood: +20, stress: -8, salary: -15 },
+        result: '老板冷笑："巧了，我刚买了那家咖啡店的股份。" 你不知道他是不是认真的。'
+      },
+      // A 机制 - 小牛专属：闷头扛
+      {
+        text: '什么也不说，默默关掉手机屏，眼睛盯回代码',
+        character: 'ox', tags: ['submissive'],
+        effects: { fatigue: +5, mood: -3, salary: +3 },
+        result: '老板拍了拍你的肩："专心点。" 走了。你盯着屏幕，鼻子有点酸。'
       },
       {
         text: '【升职雷达】不慌不忙："老板，我在研究公司下一个增长点——比如咖啡赛道。"',
@@ -365,13 +391,27 @@ window.EVENTS = [
     text: '老板叫你进会议室"聊一聊"。坐下他先问最近怎么样，紧接着："我很看好你，明年的核心项目你挑大梁。咬咬牙坚持一下，等公司上市了，期权这块……"他没说完，意味深长地看着你。',
     choices: [
       {
-        text: '"那能不能现在就签一份期权协议？签了我立刻咬牙。"',
+        text: {
+          default: '"那能不能现在就签一份期权协议？签了我立刻咬牙。"',
+          horse: '"那能不能现在就签一份期权协议？签了我立刻咬牙。"',
+          ox: '"老板……能不能给我个文件？我回去研究研究。"'
+        },
         snark: true,
         effects: { mood: +14, stress: -2, salary: -5 },
-        result: '他笑了一下，转移话题问"对未来三年怎么规划"。你心里有数了。'
+        result: {
+          default: '他笑了一下，转移话题问"对未来三年怎么规划"。你心里有数了。',
+          horse: '他笑了一下，转移话题问"对未来三年怎么规划"。你心里有数了。',
+          ox: '他说"小同志要相信公司"。你点头，但心里又开始写简历。'
+        }
       },
       {
-        text: '点头"我会努力的"，回工位就开始更新简历',
+        text: {
+          default: '点头"我会努力的"，回工位就开始更新简历',
+          horse: '点头"我会努力的"——回工位立刻打开 BOSS 直聘',
+          ox: '点头"我会努力的"——回工位继续改 PPT'
+        },
+        // 注：这条原本是 snark: true，但行为是表面顺从+暗中行动，更像 submissive
+        // 保留 snark 不变以兼容老存档统计
         snark: true,
         effects: { stress: +3, mood: +5, salary: +1, skill: +2 },
         result: '你简历的"在职公司"那一栏写完，删掉，又写，又删。'
@@ -381,6 +421,20 @@ window.EVENTS = [
         snark: true,
         effects: { stress: +5, salary: -8, mood: +12 },
         result: '老板说"小同志说话很有意思"。他记下了。'
+      },
+      // A 机制 - 小马专属：当场拆台
+      {
+        text: '"老板，明年的画饼您打算用哪种印章？我好提前准备相框。"',
+        character: 'horse', snark: true, tags: ['snark', 'boss'],
+        effects: { mood: +22, stress: -5, salary: -18 },
+        result: '会议室空气凝固。老板挤出一个笑："小同志……幽默。" 出门后你长舒一口气。'
+      },
+      // A 机制 - 小牛专属：默默承下
+      {
+        text: '"……好的老板，我尽力。"（低头）',
+        character: 'ox', tags: ['submissive'],
+        effects: { fatigue: +5, mood: -8, salary: +5, health: +1 },
+        result: '老板满意地拍了拍你的肩。你回工位时电脑前堆着三份没改完的需求。'
       },
       {
         text: '【升职雷达】反向画饼："我看好您。明年我可以再写一封 24 小时随叫随到的承诺书。"',
@@ -399,19 +453,45 @@ window.EVENTS = [
     text: '老板讲了一小时"我们正处在一个伟大的时代"，最后说："明年我们要起飞。"会议结束时大家鼓掌。你旁边的同事偷偷在群里发："起飞——指失业。"',
     choices: [
       {
-        text: '群里接："海运还是空运？如果是空运请准备氧气，公司这两年缺氧很久了。"',
+        text: {
+          default: '群里接："海运还是空运？如果是空运请准备氧气，公司这两年缺氧很久了。"',
+          horse: '群里接："海运还是空运？如果是空运请准备氧气，公司这两年缺氧很久了。"',
+          ox: '群里小心翼翼跟一个："飞机票贵吗？……开玩笑哈。"'
+        },
         snark: true,
         effects: { mood: +14, stress: -3, salary: -5 },
         result: '群里炸了。HR 发了一个"咳咳"。聊天记录被截图扩散。'
       },
       {
-        text: '回一个"哈哈哈哈哈"',
+        text: {
+          default: '回一个"哈哈哈哈哈"',
+          horse: '回一个"哈哈哈哈哈"——心里翻白眼',
+          ox: '回一个"哈哈哈哈哈"——又把那条消息往上翻看了一遍'
+        },
         effects: { mood: +5, stress: -3 }
       },
       {
-        text: '会议笔记里认真写"明年要起飞"，旁边备注"——指人员流动"',
+        text: {
+          default: '会议笔记里认真写"明年要起飞"，旁边备注"——指人员流动"',
+          horse: '会议笔记里认真写"明年要起飞"，旁边备注"——指人员流动"',
+          ox: '会议笔记里规规矩矩写"明年要起飞"，但页角画了一架坠落的纸飞机'
+        },
         snark: true,
         effects: { mood: +8, salary: -3 }
+      },
+      // A 机制 - 小马专属：当场鼓掌过度
+      {
+        text: '会议结束起立鼓掌 30 秒，比所有人都久。"老板这次真的让我热泪盈眶。"',
+        character: 'horse', snark: true, tags: ['snark', 'meeting', 'boss'],
+        effects: { mood: +18, stress: -5, salary: -10 },
+        result: '老板下台时握了你的手。HR 第二天在群里 @ 你"全员学习其饱满热情"。你不知道是不是认真的。'
+      },
+      // A 机制 - 小牛专属：会后留下来扫场
+      {
+        text: '会议结束帮 HR 搬麦克风、收椅子，老板路过你点头致意',
+        character: 'ox', tags: ['flatter', 'submissive'],
+        effects: { fatigue: +5, mood: +3, salary: +6, health: +1 },
+        result: '老板说"小同志靠谱"。下周你被纳入"明年起飞核心团队"——多了三个项目。'
       },
       {
         text: '【社交蝴蝶】在小群里发起接龙："起飞——指__"，三分钟收集了十二个版本',
@@ -431,10 +511,18 @@ window.EVENTS = [
     text: 'HR 群里发："本周六团建！怀柔某农家乐！徒步+晚宴+破冰游戏！"附微笑表情。备注小字："不参加请提前向直属领导报备并说明原因。"',
     choices: [
       {
-        text: '回复："参加可以，建议把周末按 1.5 倍工时算。"',
+        text: {
+          default: '回复："参加可以，建议把周末按 1.5 倍工时算。"',
+          horse: '回复："参加可以，建议把周末按 1.5 倍工时算。"',
+          ox: '回复："那个……能不能算加班费？" 发完秒撤回。'
+        },
         snark: true,
         effects: { mood: +12, stress: -5, salary: -5 },
-        result: 'HR 没回。当晚老板私聊："周六是自愿活动。" 你说"那我自愿不去"。'
+        result: {
+          default: 'HR 没回。当晚老板私聊："周六是自愿活动。" 你说"那我自愿不去"。',
+          horse: 'HR 没回。当晚老板私聊："周六是自愿活动。" 你说"那我自愿不去"。',
+          ox: 'HR 在群里 @ 你："收到请回复。" 你回了"收到"。'
+        }
       },
       {
         text: '"家里亲戚来。"',
@@ -442,10 +530,32 @@ window.EVENTS = [
         result: 'HR 回了一个"哦好的"。你不安了一整周。'
       },
       {
-        text: '去，但全程黑脸不参加破冰游戏',
+        text: {
+          default: '去，但全程黑脸不参加破冰游戏',
+          horse: '去，全程冷脸，破冰游戏轮到自己时说"我没什么好破的"',
+          ox: '去，硬着头皮玩，但破冰时自我介绍只说了"大家好"就坐下'
+        },
         snark: true,
         effects: { fatigue: +12, mood: +5, stress: +3, salary: -3 },
-        result: '同事说你"今天不在状态"。你说"我每天都不在状态"。'
+        result: {
+          default: '同事说你"今天不在状态"。你说"我每天都不在状态"。',
+          horse: '同事说你"今天不在状态"。你说"我每天都不在状态"。',
+          ox: '回程车上你在角落睡着了，醒来发现 HR 把你拍照发了朋友圈。'
+        }
+      },
+      // A 机制 - 小马专属：当场起义
+      {
+        text: '"建议改成把团建预算分了。每人 800，谁都不去。"',
+        character: 'horse', snark: true, tags: ['snark', 'team'],
+        effects: { mood: +20, stress: -8, salary: -12 },
+        result: '群里点赞排到 40+。HR 撤回了通知。老板第二天单独叫你聊"团队凝聚力"。'
+      },
+      // A 机制 - 小牛专属：全程在线
+      {
+        text: '默默报名，全程帮 HR 拍照、搬东西、收拾垃圾',
+        character: 'ox', tags: ['submissive', 'flatter'],
+        effects: { fatigue: +15, mood: -3, salary: +5, health: +1 },
+        result: 'HR 在群里夸你"靠谱"。下次团建你又被默认拉进了筹备组。'
       },
       {
         text: '【社交蝴蝶】反建议改成读书会，主动主持，全程读《劳动法》第 36 条',
@@ -561,18 +671,39 @@ window.EVENTS = [
     text: '你躺在床上，刷了两小时短视频。明天周一，你已经听见闹钟在心里响了。睁着眼盯天花板，想起上周还有两个需求没交。',
     choices: [
       {
-        text: '关灯睡觉，发誓九点零一分到工位（卡点不算迟到）',
+        text: {
+          default: '关灯睡觉，发誓九点零一分到工位（卡点不算迟到）',
+          horse: '关灯睡觉。"卡着点到，不算迟到——这是我对公司的最后温柔。"',
+          ox: '关灯睡觉。心里默念："明早 8 点 50 必须到。"'
+        },
         snark: true,
         effects: { fatigue: -5, mood: +5, salary: -2, stress: -3 }
       },
       {
-        text: '爬起来把代码写了，明天故意磨洋工',
-        // P0: 去 snark — 自我加压不是嘴硬，effects 自己说话
+        text: {
+          default: '爬起来把代码写了，明天故意磨洋工',
+          horse: '爬起来写代码，明天到公司故意磨洋工——"今晚已经透支了，明天该公司还。"',
+          ox: '爬起来写代码，"反正闲着也是闲着"——明天还要早到改 PPT。'
+        },
         effects: { fatigue: +12, salary: +3, mood: -2 }
       },
       {
         text: '再刷半小时，刷到一个"普通人怎么逆袭"',
         effects: { fatigue: +5, mood: +1, health: -2, stress: +3 }
+      },
+      // A 机制 - 小马专属：开始报复性熬夜
+      {
+        text: '把闹钟关了，开始报复性熬夜——刷视频到凌晨四点',
+        character: 'horse', tags: ['snark'],
+        effects: { fatigue: +15, health: -5, mood: +8, salary: -3 },
+        result: '凌晨四点你在 B 站发了一条弹幕："上班是不可能的。" 第二天迟到 1 小时。'
+      },
+      // A 机制 - 小牛专属：默默规划下一周
+      {
+        text: '打开笔记本，列下周 to-do 清单，列到第 17 条',
+        character: 'ox', tags: ['submissive'],
+        effects: { fatigue: +8, stress: +5, salary: +5, health: +1 },
+        result: '列完你睡着了。第二天那张清单成了你给老板的周计划。'
       }
     ]
   },
@@ -585,10 +716,18 @@ window.EVENTS = [
     text: '房东发了一段语音五十六秒。大意是"你住得不错对吧，但是物价涨了我也不容易，下个月开始每月加三百，行不行？"',
     choices: [
       {
-        text: '回一段 60 秒语音："您不容易，那我容易吗？我也给您简单说一下。"',
+        text: {
+          default: '回一段 60 秒语音："您不容易，那我容易吗？我也给您简单说一下。"',
+          horse: '回一段 60 秒语音："您不容易，那我容易吗？我也给您简单说一下。"',
+          ox: '回一段 30 秒语音："那个……我手头也紧，您看能不能再缓缓？"'
+        },
         snark: true,
         effects: { mood: +12, stress: +5 },
-        result: '房东半小时后回："那我们再聊聊。" 没涨成。这场你赢了。'
+        result: {
+          default: '房东半小时后回："那我们再聊聊。" 没涨成。这场你赢了。',
+          horse: '房东半小时后回："那我们再聊聊。" 没涨成。这场你赢了。',
+          ox: '房东沉默了一会，回："那……先按老价格吧。下个月再说。" 你松了口气。'
+        }
       },
       {
         text: '回"能不能少加点"',
@@ -596,7 +735,11 @@ window.EVENTS = [
         result: '房东想了一下，少加了一百。'
       },
       {
-        text: '"那我下个月搬走，押金麻烦三天内退。"',
+        text: {
+          default: '"那我下个月搬走，押金麻烦三天内退。"',
+          horse: '"那我下个月搬走，押金麻烦三天内退。"',
+          ox: '"……如果您坚持涨，那我只能考虑搬家了。"'
+        },
         snark: true,
         effects: { stress: +10, mood: +5, money: -300 },
         result: '房东拖了一周，只退了一半押金。你小红书发了帖子，他给你打电话求删。'
@@ -606,6 +749,20 @@ window.EVENTS = [
         hidden: true, requiredSkill: 'thick_skin', snark: true,
         effects: { mood: +18, stress: -3, money: +400 },
         result: '房东沉默了三十秒，最后说"那就别加了"。你乐了一晚上。'
+      },
+      // A - 小马专属：直接拉黑
+      {
+        text: '不回。当晚发朋友圈："今年起，房东也要 KPI 化。" 屏蔽房东。',
+        character: 'horse', snark: true, tags: ['snark'],
+        effects: { mood: +20, stress: -5, money: -200 },
+        result: '房东三天后打你电话："你怎么把我朋友圈屏蔽了？" 你说"误触"。'
+      },
+      // A - 小牛专属：硬咽下
+      {
+        text: '"……好的。" 转账续了一年。',
+        character: 'ox', tags: ['submissive'],
+        effects: { money: -3600, mood: -10, stress: +5, salary: +2, health: +1 },
+        result: '房东说"你真懂事"。你晚上对着小红书的搬家攻略点了 28 个收藏。'
       }
     ]
   },
@@ -618,19 +775,45 @@ window.EVENTS = [
     text: '高中同学群里有人发了张图：苏州河边的房产证、老婆孩子合照，配文"在上海安家了"。下面一长串"恭喜"。你点开他朋友圈，最近一条是马尔代夫。你点开自己朋友圈，最近一条是三周前转发的公司宣传。',
     choices: [
       {
-        text: '群里回："恭喜，房贷利率多少？现在二套政策好像不太友好。"',
+        text: {
+          default: '群里回："恭喜，房贷利率多少？现在二套政策好像不太友好。"',
+          horse: '群里回："恭喜，房贷利率多少？现在二套政策好像不太友好。"',
+          ox: '群里回个"恭喜"，然后小心翼翼问："首付多少呀？"'
+        },
         snark: true,
         effects: { mood: +10, stress: -3 },
-        result: '他没回。半小时后他撤回了那张图。'
+        result: {
+          default: '他没回。半小时后他撤回了那张图。',
+          horse: '他没回。半小时后他撤回了那张图。',
+          ox: '他回："你也可以的，加油。" 你看完想哭。'
+        }
       },
       {
         text: '关掉群，不看',
         effects: { mood: -3, stress: +2 }
       },
       {
-        text: '认真打字祝贺，然后退群',
+        text: {
+          default: '认真打字祝贺，然后退群',
+          horse: '认真打字祝贺，然后退群。"群里没我也热闹。"',
+          ox: '认真打字祝贺，发完没退群，但把消息免打扰了'
+        },
         snark: true,
         effects: { mood: +5, stress: -2 }
+      },
+      // A 机制 - 小马专属：发起阴阳
+      {
+        text: '群里转发一张《上海当代社畜租房现状》：18㎡，月租 4500',
+        character: 'horse', snark: true, tags: ['snark', 'social'],
+        effects: { mood: +15, stress: -5 },
+        result: '群里短暂沉默，然后三个人接龙发了自己的租房视频。话题被你带跑了。'
+      },
+      // A 机制 - 小牛专属：默默对比
+      {
+        text: '把图保存到收藏夹，命名为"等我赚到 100 万再看"',
+        character: 'ox', tags: ['submissive'],
+        effects: { mood: -5, stress: +5, fatigue: +3 },
+        result: '你打开收藏夹，发现里面已经有 23 张类似的图了。'
       }
     ]
   },
@@ -1342,7 +1525,11 @@ window.EVENTS = [
     text: '凌晨 1:17。甲方对接群弹出一条："临时想了一下，我们整体方向再调一下，明天上午要看新方案。" 配图是一张他家小孩的涂鸦——"参考一下这个的颜色感觉"。',
     choices: [
       {
-        text: '"凌晨发消息建议不要打扰打工人。"',
+        text: {
+          default: '"凌晨发消息建议不要打扰打工人。"',
+          horse: '"凌晨发消息建议不要打扰打工人。"',
+          ox: '"那个……我先睡了，明早回您。" 发完关静音。'
+        },
         snark: true,
         effects: { mood: +14, stress: -3, salary: -5 },
         result: '对方过半小时回："您也是打工人吗？我以为您是接需求的。" 这句话你后来截图保存了。'
@@ -1357,6 +1544,16 @@ window.EVENTS = [
         effects: { mood: +5, stress: +8, salary: -3 },
         result: '早上你回"昨晚睡早了"。甲方在群里 at 了你老板。'
       },
+      // A - 小马专属：当场怼出格
+      { text: '"那您家小孩涂鸦的费用您也得给我打过来。"',
+        character: 'horse', snark: true, tags: ['snark', 'client'],
+        effects: { mood: +25, stress: -10, salary: -25 },
+        result: '群里安静了 20 分钟。早上甲方对接人给你老板单独打了电话。你老板说"先冷处理"。' },
+      // A - 小牛专属：连夜改 3 版
+      { text: '"收到。" 默默打开 Figma，凌晨改了 3 版备选。',
+        character: 'ox', tags: ['submissive', 'overtime'],
+        effects: { fatigue: +30, health: -8, stress: +10, salary: +12, skill: +5 },
+        result: '凌晨 4 点你提交了 3 版。早上甲方说"我看看哪个我老婆喜欢"。' },
       {
         text: '【厚脸皮】"加急方案另算费用，您先打款 50% 我才开工。"',
         hidden: true, requiredSkill: 'thick_skin', snark: true,
@@ -2082,15 +2279,35 @@ window.EVENTS = [
     timeSlot: 1, tags: ['pm', 'tech'],
     text: '上周评审过的方案，今天 PM 拿着新版本来了："改一改逻辑，主流程不变。"——主流程改了 60%。',
     choices: [
-      { text: '"主流程不变？那让我看看代码哪里不变。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"主流程不变？那让我看看代码哪里不变。"',
+          horse: '"主流程不变？那让我看看代码哪里不变。"',
+          ox: '"那个……能给我标一下改动范围吗？我有点搞不清。"'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +12, stress: -2, salary: -8 },
         result: 'PM 笑了："小改动。" 你打开 git diff，整整 800 行。' },
       { text: '叹气，开始改。', tags: ['submissive', 'kpi_grind'],
         effects: { stress: +8, fatigue: +6, skill: +3, salary: +2 },
         result: '你改完了。下周他还会来。' },
-      { text: '"行，但你先在文档上签字：本次变更影响范围 = 全部。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"行，但你先在文档上签字：本次变更影响范围 = 全部。"',
+          horse: '"行，但你先在文档上签字：本次变更影响范围 = 全部。"',
+          ox: '"……能不能用邮件确认一下？我怕到时候说不清。"'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +10, stress: +3, salary: -3 },
         result: 'PM 没签。但他记住了——你这哥们儿不好惹。' },
+      // A - 小马专属：当场关电脑
+      { text: '"那我先吃个饭，回来再说。" 关电脑走人。',
+        character: 'horse', snark: true, tags: ['snark', 'refuse'],
+        effects: { mood: +20, stress: -8, salary: -15 },
+        result: 'PM 直接 @ 老板。老板回："让他静静。" 你莫名其妙赢了一回合。' },
+      // A - 小牛专属：默默加班改完
+      { text: '"好的，我今晚加班改完。" 当场打开 IDE。',
+        character: 'ox', tags: ['submissive', 'overtime'],
+        effects: { fatigue: +15, stress: +5, salary: +8, health: +1 },
+        result: '凌晨 1 点你改完了。第二天 PM 又来："还有个小调整。" 你的眼神空了一秒。' },
       { text: '【橡皮鸭】"咱们重新画一遍流程图，我有几个边界 case 想确认。"',
         hidden: true, requiredSkill: 'rubber_duck', tags: ['duck_debug', 'tech'],
         effects: { stress: +3, skill: +10, salary: +6, mood: +5 },
@@ -2486,12 +2703,27 @@ window.EVENTS = [
       { text: '见。反正吃顿饭。', tags: ['social'],
         effects: { fatigue: +5, money: -200, mood: -5 },
         result: '对方全程聊房贷和孩子计划。你那顿饭吃得想哭。' },
-      { text: '"我有对象了。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"我有对象了。"',
+          horse: '"我有对象了——还是个您一定看不上的那种。"',
+          ox: '"那个……妈，我有对象了。"（小声）'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +10 },
         result: '妈说"图片我都看了！" 你被识破。妈下周还会安排。' },
       { text: '"妈我加班，下次。"', tags: ['refuse', 'overtime'],
         effects: { mood: +5, fatigue: +3 },
-        result: '妈在家族群发"我家孩子工作太忙没空相亲"。三个亲戚来劝。' }
+        result: '妈在家族群发"我家孩子工作太忙没空相亲"。三个亲戚来劝。' },
+      // A - 小马专属：列条件吓退
+      { text: '"行，但我要求对方月入 5 万 + 户口 + 不要孩子 + 接受丁克。"',
+        character: 'horse', snark: true, tags: ['snark'],
+        effects: { mood: +18, stress: -8 },
+        result: '妈愣了三秒："那……我再问问。" 一周没催你。' },
+      // A - 小牛专属：默默答应不出门
+      { text: '"嗯。" 答应了，第二天装病爽约',
+        character: 'ox', tags: ['submissive'],
+        effects: { mood: -5, stress: +8, health: -3, fatigue: +5 },
+        result: '妈在家族群发"我家孩子身体不好"。她真信了。你愧疚到睡不着。' }
     ]
   },
 
@@ -2504,12 +2736,27 @@ window.EVENTS = [
       { text: '"我考虑一下。"', tags: ['submissive'],
         effects: { mood: -5, stress: +5 },
         result: '挂掉电话你打开了"国考报名"。然后又关了。' },
-      { text: '"那点工资我在这一个月就赚到了。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"那点工资我在这一个月就赚到了。"',
+          horse: '"那点工资我在这一个月就赚到了——但是我下个月可能就赚不到了。"',
+          ox: '"爸，那个工资……可能不太够。"'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +12, stress: -3 },
         result: '爸沉默了。他不知道你存款不到 ¥20000。' },
       { text: '"再给我两年，不行我回去。"', tags: ['flatter'],
         effects: { mood: +5, stress: +3 },
-        result: '爸说"好"。挂电话后你哭了 5 分钟，然后继续改 PPT。' }
+        result: '爸说"好"。挂电话后你哭了 5 分钟，然后继续改 PPT。' },
+      // A - 小马专属：直接反问
+      { text: '"街道办每天打杂端茶倒水，您觉得我能熬住？"',
+        character: 'horse', snark: true, tags: ['snark'],
+        effects: { mood: +15, stress: -3 },
+        result: '爸气得挂了电话。妈下午追打来："你怎么跟你爸说话呢？"' },
+      // A - 小牛专属：嘴上答应心里抗拒
+      { text: '"好的爸，我看看资料。"（其实一个字都不会点开）',
+        character: 'ox', tags: ['submissive', 'flatter'],
+        effects: { mood: -8, stress: +8, fatigue: +3, health: +1 },
+        result: '爸过了一周问："看了吗？" 你说"还没"。他又问："你打算什么时候看？"' }
     ]
   },
 
@@ -2525,9 +2772,24 @@ window.EVENTS = [
       { text: '到场不到场？只发红包 ¥200。', tags: ['refuse'],
         effects: { money: -200, mood: -3 },
         result: '群里没人 @ 你。但你那条消息底下没人点赞。' },
-      { text: '"我请假不了，礼到人不到。"', snark: true, tags: ['snark', 'shop'],
+      { text: {
+          default: '"我请假不了，礼到人不到。"',
+          horse: '"我请假不了，礼到人不到。" 转 ¥300。',
+          ox: '"那个……我请不了假，但我转一点。" 咬咬牙转了 ¥500。'
+        },
+        snark: true, tags: ['snark', 'shop'],
         effects: { money: -500, mood: +5 },
-        result: '同学说"理解的"。你不知道是不是真理解。' }
+        result: '同学说"理解的"。你不知道是不是真理解。' },
+      // A - 小马专属：直接退群
+      { text: '"工资还没到账，下次。" 然后退群。',
+        character: 'horse', snark: true, tags: ['snark', 'refuse'],
+        effects: { mood: +18, stress: -5 },
+        result: '群主小李加你 wx："你咋退群了？" 你说"误触"。再没回他。' },
+      // A - 小牛专属：硬挤出钱
+      { text: '"恭喜恭喜！" 转 ¥800。（这周饭钱拿副业补）',
+        character: 'ox', tags: ['submissive', 'flatter'],
+        effects: { money: -800, mood: -8, fatigue: +5, health: +1, salary: +2 },
+        result: '小李回："谢谢！" 你这周午饭只吃了 7-11 三明治。' }
     ]
   },
 
@@ -2574,16 +2836,30 @@ window.EVENTS = [
     timeSlot: 1, tags: ['holiday'], once: true,
     text: '公司发的月饼礼盒，¥80 标价（你查了）。运回老家快递 ¥45。',
     choices: [
-      { text: '寄回老家。', tags: ['shop', 'flatter'],
+      { text: {
+          default: '寄回老家。',
+          horse: '寄回老家——"让我妈看看公司发的破月饼长什么样。"',
+          ox: '寄回老家——希望妈高兴，宁可亏快递费。'
+        },
+        tags: ['shop', 'flatter'],
         effects: { money: -45, mood: +3 },
         result: '妈："这种月饼超市才 ¥30，你寄回来花了 45？" 你笑了。' },
       { text: '在公司给同事分了。', tags: ['social'],
         effects: { mood: +8 },
         result: '没人爱吃，最后大家都拿了一块就放下了。' },
       { text: '咸鱼挂出去 ¥40。', tags: ['side_work'],
-        // P0: 去 snark — 副业行为不是嘴硬，且这是收入
         effects: { money: +30, mood: +5 },
-        result: '卖出去了。同事看到链接，给你点了个赞。' }
+        result: '卖出去了。同事看到链接，给你点了个赞。' },
+      // A - 小马专属：发朋友圈嘲讽
+      { text: '拍照发朋友圈："今年公司福利——值 30 块的爱。"',
+        character: 'horse', snark: true, tags: ['snark', 'social'],
+        effects: { mood: +15, stress: -5 },
+        result: '老板点赞了。你不知道他是没看清还是在阴你。HR 第二天私聊："那条能撤一下吗？"' },
+      // A - 小牛专属：留下自己慢慢吃
+      { text: '默默拎回出租屋，每天吃一个。',
+        character: 'ox', tags: ['submissive'],
+        effects: { health: -3, mood: +5 },
+        result: '吃到第三天你发现月饼有点哈喇味。你还是吃完了。' }
     ]
   },
 

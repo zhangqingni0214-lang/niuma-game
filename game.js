@@ -173,8 +173,20 @@ function pickEvent() {
 }
 
 function isChoiceVisible(choice) {
+  // 角色限定：choice.character 指定后只对该角色显示
+  if (choice.character && choice.character !== state?.character) return false;
   if (!choice.hidden) return true;
   return archive.unlockedSkills.includes(choice.requiredSkill);
+}
+
+// 角色文本变体解析：choice.text 可以是 string 或 {default, horse, ox}
+// 用法：
+//   { text: '吃饭', ... }                       — 通用
+//   { text: { default: '怼回去', horse: '阴阳一句：...', ox: '硬着头皮哼一声' }, ... }
+//   choice.result 也支持同样的格式
+function resolveText(text, character) {
+  if (typeof text !== 'object' || text === null) return text;
+  return text[character] || text.default || text.horse || text.ox || '';
 }
 
 // =====================
@@ -215,7 +227,8 @@ function applyEffects(effects, ctx) {
       }
     } else {
       // 忍气吞声/摸鱼/常规
-      const isSubmissive = /忍|默|低头|跟着|不抢|潜水|关电脑|关灯|不吃|盯着|画|不看|装/.test(choice?.text || '');
+      const choiceTextStr = resolveText(choice?.text, state?.character) || '';
+      const isSubmissive = /忍|默|低头|跟着|不抢|潜水|关电脑|关灯|不吃|盯着|画|不看|装/.test(choiceTextStr);
       if (isSubmissive) {
         if (t.submissiveBonus) {
           for (const [k, v] of Object.entries(t.submissiveBonus)) adj[k] = (adj[k] || 0) + v;
@@ -235,7 +248,7 @@ function applyEffects(effects, ctx) {
 
   // 不眠咒：咖啡不扣健康，提神 ×1.5，额外 -3 压力
   if (unlocked.has('coffee_immune') &&
-      (chTags.includes('coffee') || /咖啡|美式|黑咖/.test(choice?.text || ''))) {
+      (chTags.includes('coffee') || /咖啡|美式|黑咖/.test(resolveText(choice?.text, state?.character) || ''))) {
     if (adj.health && adj.health < 0) adj.health = 0;
     if (adj.fatigue && adj.fatigue < 0) adj.fatigue = Math.floor(adj.fatigue * 1.5);
     adj.stress = (adj.stress || 0) - 3;
@@ -750,7 +763,7 @@ function trackChoice(event, choiceIdx) {
   const h = state.history;
   h.totalChoices += 1;
   const choice = event.choices[choiceIdx];
-  const text = choice.text;
+  const text = resolveText(choice.text, state.character);
   const tags = choice.tags || [];
 
   // 兼容：snark 字段或 snark tag 均可触发
@@ -1266,7 +1279,7 @@ function renderGame() {
     const btn = document.createElement('button');
     btn.className = 'choice-btn';
     if (c.hidden) btn.classList.add('skill-choice');
-    btn.textContent = c.text;
+    btn.textContent = resolveText(c.text, state.character);
     btn.onclick = () => makeChoice(ev, idx);
     choicesEl.appendChild(btn);
   });
@@ -1292,8 +1305,8 @@ function makeChoice(ev, idx) {
     eventId: ev.id,
     eventTitle: ev.title,
     choiceIdx: idx,
-    choiceText: choice.text,
-    result: choice.result || null,
+    choiceText: resolveText(choice.text, state.character),
+    result: resolveText(choice.result, state.character) || null,
     skill: choice.requiredSkill || null
   });
 
@@ -1301,8 +1314,9 @@ function makeChoice(ev, idx) {
   saveState();
 
   const showResultOrNext = () => {
-    if (choice.result) {
-      $('#choice-result-text').textContent = choice.result;
+    const resolvedResult = resolveText(choice.result, state.character);
+    if (resolvedResult) {
+      $('#choice-result-text').textContent = resolvedResult;
       $('#choice-result').classList.remove('hidden');
       $$('.choice-btn').forEach(b => b.disabled = true);
       $('#next-btn').onclick = nextStep;
