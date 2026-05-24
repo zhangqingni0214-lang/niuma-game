@@ -13,6 +13,9 @@ let archive = null;
 // 投胎临时选择
 let investiture = { character: null, jobId: null };
 
+// 新手引导卡 1 关闭后要执行的动作（由 btn-start 设置，cap close 时执行）
+let _onboardingNextAction = null;
+
 // =====================
 // 状态初始化
 // =====================
@@ -1599,6 +1602,15 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!confirm('上一只牛马还没死透，重新投胎会覆盖。继续？')) return;
       clearState();
     }
+    // 首次点「今日投胎」先弹引导卡 1；看完后再进投胎页
+    if (!localStorage.getItem('onboarding_seen_v1')) {
+      _onboardingNextAction = () => {
+        investiture = { character: null, jobId: null };
+        renderInvestiture('character');
+      };
+      $('#onboarding-modal').classList.remove('hidden');
+      return;
+    }
     investiture = { character: null, jobId: null };
     renderInvestiture('character');
   };
@@ -1675,13 +1687,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!confirm('销毁前世会清空所有轮回、技能、业力、事件库存。从头做牛马？')) return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ARCHIVE_KEY);
-    // 销毁前世顺手把新手引导 flag 也清掉，老玩家也能重新看一遍
+    // 销毁前世顺手把新手引导 flag 也清掉，老玩家下次点「今日投胎」会再看一遍引导
     localStorage.removeItem('onboarding_seen_v1');
     localStorage.removeItem('onboarding_death_v1');
     loadArchive();
     renderMenu();
-    // 立即重新触发新手卡
-    setTimeout(() => $('#onboarding-modal').classList.remove('hidden'), 300);
   };
 
   $$('.tab-btn').forEach(b => {
@@ -1706,16 +1716,17 @@ window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', kickBGM, { capture: true });
   document.addEventListener('touchstart', kickBGM, { capture: true });
 
-  // ===== 新手引导卡 1：首次进游戏 5 秒须知 =====
-  if (!localStorage.getItem('onboarding_seen_v1')) {
-    setTimeout(() => {
-      $('#onboarding-modal').classList.remove('hidden');
-    }, 500);
-  }
+  // ===== 新手引导卡 1：点【今日投胎】后才弹（不是 DOMContentLoaded 即弹） =====
+  // _onboardingNextAction 由 btn-start 设置，关闭时执行（继续进投胎页）
   $('#onboarding-close').onclick = () => {
     if (window.SFX) SFX.play('click');
     localStorage.setItem('onboarding_seen_v1', '1');
     $('#onboarding-modal').classList.add('hidden');
+    if (_onboardingNextAction) {
+      const action = _onboardingNextAction;
+      _onboardingNextAction = null;
+      action();
+    }
   };
 
   // ===== 新手引导卡 2：首次挂掉之后按钮处理 =====
