@@ -567,7 +567,7 @@ window.EVENTS = [
       },
       {
         text: '爬起来把代码写了，明天故意磨洋工',
-        snark: true,
+        // P0: 去 snark — 自我加压不是嘴硬，effects 自己说话
         effects: { fatigue: +12, salary: +3, mood: -2 }
       },
       {
@@ -669,7 +669,7 @@ window.EVENTS = [
     choices: [
       {
         text: '全部下单，截图发朋友圈："明天起更努力打工。"',
-        snark: true,
+        // P0: 去 snark — 这是消费冲动，不是嘴硬，money:-2400 自带代价
         effects: { mood: +15, money: -2400, stress: +5 },
         result: '收到货后发现有三件都不太需要。'
       },
@@ -2580,7 +2580,8 @@ window.EVENTS = [
       { text: '在公司给同事分了。', tags: ['social'],
         effects: { mood: +8 },
         result: '没人爱吃，最后大家都拿了一块就放下了。' },
-      { text: '咸鱼挂出去 ¥40。', snark: true, tags: ['snark', 'side_work'],
+      { text: '咸鱼挂出去 ¥40。', tags: ['side_work'],
+        // P0: 去 snark — 副业行为不是嘴硬，且这是收入
         effects: { money: +30, mood: +5 },
         result: '卖出去了。同事看到链接，给你点了个赞。' }
     ]

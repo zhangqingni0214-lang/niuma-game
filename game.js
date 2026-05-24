@@ -32,7 +32,9 @@ function defaultHistory() {
     fishingCount: 0,
     coffeeCount: 0,
     overtimeCount: 0,
-    snarkCount: 0,
+    snarkCount: 0,        // 总嘴硬次数（work + life，老存档 & endings.js 仍依赖）
+    snarkWorkCount: 0,    // P2: 仅工作场景嘴硬，驱动"怼老板第 6 次"警告
+    snarkLifeCount: 0,    // P2: 仅生活场景嘴硬（暂未驱动警告，留作后续彩蛋）
     submissiveCount: 0,
     sideHustleCount: 0,
     politicsCount: 0,
@@ -412,8 +414,62 @@ const SNARK_REASONS_BY_TAG = {
     '工位反思费（一次性）',
     '微信响应慢于 30 秒，行政罚',
     '"情商培训"强制报名费'
+  ],
+
+  // ===== P1: 生活罚款池 — 嘴硬扣款照旧 2.5%，但理由对得上场景 =====
+  // 家人 / 相亲 / 老家
+  life_family: [
+    '妈在家族群发了三段语音',
+    '亲戚连环 call 你三个晚上',
+    '妈给你转了 ¥200，备注"想清楚"',
+    '七大姑八大姨群里热议"我家这孩子"',
+    '外婆托人捎了一袋特产，纸条上写"别太倔"'
+  ],
+  // 同学群 / 朋友圈 / 婚礼
+  life_social: [
+    '同学群三天后把你踢了',
+    '高中老同学朋友圈点 9 个赞——都给别人',
+    '大学闺蜜的下次聚餐没叫你',
+    '班级群你的备注被改成了"那个谁"',
+    '你那条朋友圈下面 0 个赞'
+  ],
+  // 房东 / 租房
+  life_landlord: [
+    '房东磨蹭一周才退一半押金',
+    '中介把你 pull 到了"敏感客户"名单',
+    '物业第二天没给你停车位',
+    '房东在小区群里 @ "某些租客"',
+    '续约时房租又涨了 ¥200'
+  ],
+  // 双11 / 咸鱼 / 购物
+  life_shopping: [
+    '购物 APP 推了一周"戒断治疗"广告',
+    '咸鱼平台给你的"信誉分"扣 5',
+    '快递小哥不再给你送上门',
+    '自动续费的会员卡偷偷又扣了 ¥98',
+    '朋友圈微商私信你三天'
+  ],
+  // 生活场景兜底
+  life_default: [
+    '微信运动里没人给你点赞了',
+    '心情记录 APP 弹窗"今天感觉怎么样？"',
+    '美团给你推了"减压套餐"',
+    '短视频算法连推三天"打工人语录"',
+    '你那条 emoji 状态被 3 个朋友"看到"，无人回应'
   ]
 };
+
+// work tag 集合：用于区分事件是工作场景还是生活场景
+const WORK_TAGS = new Set([
+  'hr', 'client', 'team_lead', 'boss', 'pm',
+  'team', 'meeting', 'overtime', 'zeitgeist', 'tech'
+]);
+
+// 判断事件是否为工作场景（决定 snark 走 work 池还是 life 池 + snarkWorkCount 是否累加）
+function isWorkScopeEvent(ev) {
+  const tags = ev?.tags || [];
+  return tags.some(t => WORK_TAGS.has(t));
+}
 
 // 优先级：越具体的 tag 越优先匹配
 const SNARK_TAG_PRIORITY = [
@@ -439,17 +495,38 @@ function pickSnarkReason(ev, choice) {
   // 1. 选项自带 snarkReason → 优先
   if (choice?.snarkReason) return choice.snarkReason;
 
-  // 2. 按事件 tag 匹配（优先级倒序）
   const tags = ev?.tags || [];
-  for (const t of SNARK_TAG_PRIORITY) {
-    if (tags.includes(t) && SNARK_REASONS_BY_TAG[t]) {
-      const pool = SNARK_REASONS_BY_TAG[t];
-      return pool[Math.floor(Math.random() * pool.length)];
+  const text = (ev?.title || '') + ' ' + (ev?.text || '');
+
+  // 2. 工作场景：按 work tag 优先级匹配
+  if (isWorkScopeEvent(ev)) {
+    for (const t of SNARK_TAG_PRIORITY) {
+      if (tags.includes(t) && SNARK_REASONS_BY_TAG[t]) {
+        const pool = SNARK_REASONS_BY_TAG[t];
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
     }
+    // 工作场景兜底
+    const pool = SNARK_REASONS_BY_TAG.default;
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
-  // 3. 兜底
-  const pool = SNARK_REASONS_BY_TAG.default;
+  // 3. 生活场景：按子桶关键词路由
+  let lifeBucket = null;
+  if (/妈|爸|父母|相亲|老家|亲戚|家族|家里/.test(text)) {
+    lifeBucket = 'life_family';
+  } else if (tags.includes('social') || /同学|朋友圈|婚礼|红包|班级|聚会/.test(text)) {
+    lifeBucket = 'life_social';
+  } else if (/房东|房租|中介|物业|租房/.test(text)) {
+    lifeBucket = 'life_landlord';
+  } else if (tags.includes('side_work') || tags.includes('side') ||
+             (tags.includes('holiday') && /双十一|购物车|咸鱼|闲鱼|月饼/.test(text)) ||
+             /购物|咸鱼|闲鱼/.test(text)) {
+    lifeBucket = 'life_shopping';
+  } else {
+    lifeBucket = 'life_default';
+  }
+  const pool = SNARK_REASONS_BY_TAG[lifeBucket];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 function pickMedicalReason(rounds) {
@@ -677,7 +754,12 @@ function trackChoice(event, choiceIdx) {
   const tags = choice.tags || [];
 
   // 兼容：snark 字段或 snark tag 均可触发
-  if (choice.snark || tags.includes('snark')) h.snarkCount += 1;
+  if (choice.snark || tags.includes('snark')) {
+    h.snarkCount += 1;
+    // P2: 按事件场景分桶，避免家里催相亲被算"怼老板"
+    if (isWorkScopeEvent(event)) h.snarkWorkCount = (h.snarkWorkCount || 0) + 1;
+    else h.snarkLifeCount = (h.snarkLifeCount || 0) + 1;
+  }
   if (event.pool === 'side_hustle' || tags.includes('side_work')) h.sideHustleCount += 1;
   if (choice.requiredSkill === 'office_politics' || tags.includes('politics')) h.politicsCount += 1;
   if (choice.requiredSkill && !h.skillsUsed.includes(choice.requiredSkill)) {
@@ -830,7 +912,8 @@ const RESCUE_WARNINGS = [
 const TOAST_WARNINGS = [
   { key: 'salary20',  when: (s, h) => s.salary <= 20,    msg: '⚠️ 工资分跌得太狠，老板要动手了' },
   { key: 'money_low', when: (s, h) => s.money <= -100,   msg: '⚠️ 存款见底，再花点就破产了' },
-  { key: 'snark6',    when: (s, h) => (h?.snarkCount || 0) >= 6, msg: '⚠️ 你怼老板第 6 次了，HR 在盯着' },
+  // P2: 只看工作场景嘴硬，家里 / 同学 / 房东 / 相亲 的嘴硬不算"怼老板"
+  { key: 'snark6',    when: (s, h) => (h?.snarkWorkCount || 0) >= 6, msg: '⚠️ 你怼老板第 6 次了，HR 在盯着' },
 ];
 
 function checkWarnings() {
@@ -1113,8 +1196,9 @@ function renderInvestiture(step = 'character') {
 // 游戏主页面
 // =====================
 function renderGame() {
-  // 0.6s fadeIn：进游戏屏要"立刻"有音乐感，菜单/结局保持 2s 慢渐入
-  if (window.SFX) SFX.playBGM('game', 0.6);
+  // P3: 0.4s crossfade — 菜单 BGM 同步 0.4s fadeOut（playBGM 内部把这个值传给 stopBGM），
+  // 游戏 BGM 0.4s fadeIn，整个过渡 < 0.5s 完成，听感"切"而非"渐"
+  if (window.SFX) SFX.playBGM('game', 0.4);
   // Day 7 绩效通知优先弹出
   if (state.pendingBonusModal) {
     const data = state.pendingBonusModal;
