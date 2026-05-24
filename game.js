@@ -1616,9 +1616,15 @@ window.addEventListener('DOMContentLoaded', () => {
   $('#btn-back-menu').onclick = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
   $('#archive-back').onclick  = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
   $('#skills-back').onclick   = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
-  $('#ending-back').onclick   = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
+  $('#ending-back').onclick   = () => {
+    if (window.SFX) SFX.play('back');
+    // 首次挂了拦截：弹引导卡 2，玩家从卡里选去秘籍或再投胎，跳过 renderMenu
+    if (maybeShowFirstDeathCard()) return;
+    renderMenu();
+  };
   $('#ending-replay').onclick = () => {
     if (window.SFX) SFX.play('choice_select');
+    if (maybeShowFirstDeathCard()) return;
     investiture = { character: null, jobId: null };
     renderInvestiture('character');
   };
@@ -1669,8 +1675,13 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!confirm('销毁前世会清空所有轮回、技能、业力、事件库存。从头做牛马？')) return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ARCHIVE_KEY);
+    // 销毁前世顺手把新手引导 flag 也清掉，老玩家也能重新看一遍
+    localStorage.removeItem('onboarding_seen_v1');
+    localStorage.removeItem('onboarding_death_v1');
     loadArchive();
     renderMenu();
+    // 立即重新触发新手卡
+    setTimeout(() => $('#onboarding-modal').classList.remove('hidden'), 300);
   };
 
   $$('.tab-btn').forEach(b => {
@@ -1694,4 +1705,55 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   document.addEventListener('click', kickBGM, { capture: true });
   document.addEventListener('touchstart', kickBGM, { capture: true });
+
+  // ===== 新手引导卡 1：首次进游戏 5 秒须知 =====
+  if (!localStorage.getItem('onboarding_seen_v1')) {
+    setTimeout(() => {
+      $('#onboarding-modal').classList.remove('hidden');
+    }, 500);
+  }
+  $('#onboarding-close').onclick = () => {
+    if (window.SFX) SFX.play('click');
+    localStorage.setItem('onboarding_seen_v1', '1');
+    $('#onboarding-modal').classList.add('hidden');
+  };
+
+  // ===== 新手引导卡 2：首次挂掉之后按钮处理 =====
+  // 触发逻辑写在 ending-replay / ending-back 的 onclick 里（见上面）
+  $('#first-death-skills').onclick = () => {
+    if (window.SFX) SFX.play('click');
+    localStorage.setItem('onboarding_death_v1', '1');
+    $('#first-death-modal').classList.add('hidden');
+    renderSkillTree();
+  };
+  $('#first-death-restart').onclick = () => {
+    if (window.SFX) SFX.play('choice_select');
+    localStorage.setItem('onboarding_death_v1', '1');
+    $('#first-death-modal').classList.add('hidden');
+    investiture = { character: null, jobId: null };
+    renderInvestiture('character');
+  };
 });
+
+// 拦截 ending 按钮：首次挂了先弹卡片 2
+// 返回 true = 已拦截（卡片在显示），false = 没拦截（按原流程走）
+function maybeShowFirstDeathCard() {
+  // 第一次挂了的判定：archive 已有第 1 条记录（finalizeLife 已执行），但卡未弹过
+  const isFirstDeath = (archive?.totalLives === 1);
+  const seen = localStorage.getItem('onboarding_death_v1') === '1';
+  if (!isFirstDeath || seen) return false;
+  // 填入实际数据
+  const last = archive.lives[0];
+  const stats = $('#first-death-stats');
+  if (stats && last) {
+    const karma = last.karmaGain || 0;
+    const tags = (last.tags || []).length;
+    const totalEndings = (window.ENDINGS || []).length;
+    stats.innerHTML =
+      `· 业力 +${karma} 点<br>` +
+      `· 死法 1 / ${totalEndings}<br>` +
+      `· 人设标签 +${tags} 个`;
+  }
+  $('#first-death-modal').classList.remove('hidden');
+  return true;
+}

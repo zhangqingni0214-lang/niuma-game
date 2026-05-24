@@ -1234,6 +1234,51 @@ html, body {
 .bonus-amount.zero { color: #999; }
 .bonus-amount.negative { color: #c0392b; }
 
+/* ========= 新手引导卡 ========= */
+.onboarding-card {
+  /* 与菜单卡同款米黄底 + 像素风边框，区别于普通 modal 的白底 */
+  background: #ecd9b9;
+  border: 3px solid #2b2b2b;
+  border-radius: 6px;
+  box-shadow: 8px 8px 0 #1a1108, 0 0 0 1px #c8a979 inset;
+  padding: 16px 18px 14px;
+}
+.onboarding-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #2b2b2b;
+  margin-bottom: 14px;
+}
+.onboarding-body p {
+  margin: 0 0 12px;
+}
+.onboarding-body p:last-child {
+  margin-bottom: 0;
+}
+.onboarding-body b {
+  color: #2b2b2b;
+  font-weight: 700;
+}
+.onboarding-hl {
+  color: #c1322a;
+  font-weight: 700;
+}
+.onboarding-stats {
+  background: #f8f0dc;
+  border: 2px dashed #c8a979;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.onboarding-btn-row {
+  display: flex;
+  gap: 8px;
+}
+.onboarding-btn-row .ios-btn {
+  flex: 1;
+}
+
 /* iOS 风顶部 Toast (日薪到账等轻提示) */
 .toast {
   position: fixed;
