@@ -1909,7 +1909,11 @@ window.EVENTS = [
     text: '项目今晚 8 点正式上线。你已经收拾好东西准备走人。8:03，甲方发消息："上线挺好的。我刚想到一个小调整，麻烦今晚改一下。" 你看了一眼"小调整"清单——27 项。',
     choices: [
       {
-        text: '"这些都是新需求，下周走变更流程。"',
+        text: {
+          default: '"这些都是新需求，下周走变更流程。"',
+          horse: '"这些都是新需求，下周走变更流程。"',
+          ox: '"那个……这些算新需求吗？要不咱们走个变更流程？"'
+        },
         snark: true,
         effects: { mood: +14, stress: -3, salary: -8 },
         result: '甲方回："你们怎么这么不灵活。" 你说"流程是您去年要求加的"。'
@@ -2489,10 +2493,20 @@ window.EVENTS = [
     timeSlot: 1, tags: ['team'],
     text: '上次需求评审上的失误，A 公开认领了。今天他私聊："咱俩商量个事？"他想让你下次帮他扛一次。',
     choices: [
-      { text: '"行，我记你一次。"', tags: ['social', 'politics'],
+      { text: {
+          default: '"行，我记你一次。"',
+          horse: '"行，我记你一次。"',
+          ox: '"那个……好的，下次我帮你。" 心里已经在算工时账。'
+        },
+        tags: ['social', 'politics'],
         effects: { mood: +3, stress: +5, salary: -2 },
         result: '三天后他让你接手他半个项目。你赌的是友情，他赌的是工时。' },
-      { text: '"上次那个本来也不是大事，谢了。"', tags: ['refuse'],
+      { text: {
+          default: '"上次那个本来也不是大事，谢了。"',
+          horse: '"上次那个本来也不是大事，谢了。"',
+          ox: '"上次……其实也不算什么大事，谢谢你。" 笑得很客气。'
+        },
+        tags: ['refuse'],
         effects: { mood: +3, stress: +3 },
         result: '他笑了一下："明白。" 但你知道，关系凉了。' },
       { text: '【王安石】"咱俩这账先记着，下次我帮你的时候要看具体情况。"',
@@ -3037,10 +3051,20 @@ window.EVENTS = [
     timeSlot: 2, tags: ['health', 'life'],
     text: '室友坐在你床边："我昨天去精神科了。医生说是中度抑郁。" 他眼眶红了。你不知道说什么。',
     choices: [
-      { text: '陪他聊了一晚上。', tags: ['social', 'rest'],
+      { text: {
+          default: '陪他聊了一晚上。',
+          horse: '陪他聊了一晚上——你也讲了自己几个最难受的瞬间。',
+          ox: '陪他聊了一晚上——大部分时间你在听，偶尔插一句"我懂"。'
+        },
+        tags: ['social', 'rest'],
         effects: { fatigue: +8, mood: +5, stress: -3, health: -3 },
         result: '凌晨 2 点你们都睡着了。但你第二天上班心里一直牵挂。' },
-      { text: '"你这是工作压力太大吧，要不换个工作？"', tags: ['social'],
+      { text: {
+          default: '"你这是工作压力太大吧，要不换个工作？"',
+          horse: '"你这是工作压力太大吧，要不换个工作？"',
+          ox: '"那个……是不是工作太累了？要不要先休息一阵？"'
+        },
+        tags: ['social'],
         effects: { mood: -3, stress: +3 },
         result: '他没说话，回房间了。你意识到说错了。' },
       { text: '陪他去看医生，请了一天假。', tags: ['rest', 'refuse'],
@@ -3106,7 +3130,12 @@ window.EVENTS = [
       { text: '"那我搬走。" 然后真的开始找房子。', tags: ['refuse'],
         effects: { fatigue: +10, money: -200, mood: -5 },
         result: '看了 6 套，最后租了更贵但更近公司的。每月省了通勤但多了 ¥500。' },
-      { text: '"现在市场行情？您挂中介看看，我陪您看。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"现在市场行情？您挂中介看看，我陪您看。"',
+          horse: '"现在市场行情？您挂中介看看，我陪您看。"',
+          ox: '"那个……您看现在行情，要不再挂挂看？我没催您。"'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +12, stress: -3 },
         result: '房东确实挂了一周没人问。最后跟你续约，没涨。' }
     ]
@@ -3217,10 +3246,20 @@ window.EVENTS = [
     timeSlot: 2, tags: ['life'],
     text: '爸妈下周要来你这住一周。出租屋 18㎡，你睡沙发都难。',
     choices: [
-      { text: '订酒店给他们，自己沙发凑合。', tags: ['shop'],
+      { text: {
+          default: '订酒店给他们，自己沙发凑合。',
+          horse: '订酒店给他们，自己沙发凑合——"我家就这条件，住不下他们也住不下我。"',
+          ox: '订酒店给他们，自己沙发凑合——咬咬牙 ¥1500，但妈说"住酒店多见外"。'
+        },
+        tags: ['shop'],
         effects: { money: -1500, mood: -3, fatigue: +5 },
         result: '一周下来 ¥1500 没了。爸说"住酒店多见外"。' },
-      { text: '"我这边太挤了，下次回家见吧。"', tags: ['refuse'],
+      { text: {
+          default: '"我这边太挤了，下次回家见吧。"',
+          horse: '"我这边太挤了，下次回家见吧。"',
+          ox: '"那个……我这边真的住不下，下次我回家好不好？"（小心翼翼）'
+        },
+        tags: ['refuse'],
         effects: { mood: -8, stress: +5 },
         result: '妈在群里发"孩子嫌弃我们"。家族群一片"理解理解"。' },
       { text: '请假陪一周。', tags: ['rest'],
@@ -3477,7 +3516,12 @@ window.EVENTS = [
     timeSlot: 1, jobs: ['team_lead'], tags: ['team_lead', 'team'],
     text: '项目延期，下属小张在老板面前说："这是组长让我这么改的。" 你当时根本没说过。',
     choices: [
-      { text: '当场反驳："我没说过，飞书记录翻一下。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '当场反驳："我没说过，飞书记录翻一下。"',
+          horse: '当场反驳："我没说过，飞书记录翻一下。"',
+          ox: '小心地说："那个……能翻一下飞书记录吗？我可能没说过。"'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +10, stress: +8, salary: +3 },
         result: '翻出聊天记录，小张哑火。但他从此对你有意见。' },
       { text: '默默背了。下来再找他谈。', tags: ['submissive'],
@@ -3499,7 +3543,12 @@ window.EVENTS = [
       { text: '挨个打电话问候。', tags: ['flatter'],
         effects: { fatigue: +5, mood: -3, salary: +3 },
         result: '电话里都说"明天来"。明天还有人请。' },
-      { text: '"病假需要医院证明。" 发群里。', snark: true, tags: ['snark'],
+      { text: {
+          default: '"病假需要医院证明。" 发群里。',
+          horse: '"病假需要医院证明。" 发群里。',
+          ox: '"那个……以后病假最好附上证明，方便走流程。"（小心翼翼发群里）'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +5, stress: +5, salary: -3 },
         result: '下属真的提交了证明。你看了一眼，三家不同医院。' },
       { text: '自己顶上做了所有人的活。', tags: ['overtime', 'submissive'],
@@ -3533,7 +3582,12 @@ window.EVENTS = [
     timeSlot: 1, jobs: ['team_lead'], tags: ['team_lead', 'boss'],
     text: '老板找你："小张直接找我反馈，说你管得太死。" 你愣了。小张昨天还跟你说"组长辛苦了"。',
     choices: [
-      { text: '"管得死？哦那我以后不管了。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"管得死？哦那我以后不管了。"',
+          horse: '"管得死？哦那我以后不管了。"',
+          ox: '"那个……我可能管得严了点，下次我注意。"（手心冒汗）'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +12, stress: +5, salary: -8 },
         result: '老板看你一眼："你这态度不行。" 你心里想"那他态度行？"' },
       { text: '"我跟他下来沟通。" 然后真的去找他。', tags: ['kpi_grind'],
@@ -3558,7 +3612,12 @@ window.EVENTS = [
       { text: '"找 HR 报销，公司预算。"', tags: ['kpi_grind'],
         effects: { stress: +3, salary: +3, money: -1500 },
         result: 'HR 说"团建超出预算，要老板特批"。你最后还是自己出了。' },
-      { text: '"AA 啊，咱们成年人。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"AA 啊，咱们成年人。"',
+          horse: '"AA 啊，咱们成年人。"',
+          ox: '"那个……咱们 AA 行不行？我这周也比较紧。"'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +12, stress: -3, salary: -3, money: -300 },
         result: '下属们脸僵了。但你那 ¥1500 还是 AA 分摊了——你头上 ¥300。' }
     ]
@@ -3573,7 +3632,12 @@ window.EVENTS = [
       { text: '挑表现最弱的小李。', tags: ['kpi_grind', 'submissive'],
         effects: { stress: +12, mood: -10, salary: +3 },
         result: '小李哭着问"为什么是我"。你给不出答案。' },
-      { text: '"我组就 3 人，要末位我去找老板谈。"', snark: true, tags: ['snark', 'refuse'],
+      { text: {
+          default: '"我组就 3 人，要末位我去找老板谈。"',
+          horse: '"我组就 3 人，要末位我去找老板谈。"',
+          ox: '"那个……我们组就 3 个人，能不能跟老板沟通下指标？"'
+        },
+        snark: true, tags: ['snark', 'refuse'],
         effects: { mood: +15, stress: +8, salary: -10 },
         result: '老板说"那你的位置也要重新评估"。你赌赢了一半，下季度你的预算被砍。' },
       { text: '私下劝小李"主动跳槽，我给推荐"。', tags: ['social'],
@@ -3599,7 +3663,12 @@ window.EVENTS = [
       { text: '挑老客户软磨硬泡。', tags: ['flatter'],
         effects: { stress: +5, money: +500, salary: +5 },
         result: '老客户给面子签了。但说"以后这种节奏不接受"。' },
-      { text: '"指标谁定的，不切实际。"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"指标谁定的，不切实际。"',
+          horse: '"指标谁定的，不切实际。"',
+          ox: '"那个……这个指标我们怎么完成呢？" 发完手抖。'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +12, salary: -10, stress: +5 },
         result: '老板群里点名："X 同学注意态度。" 你的提成系数被调低了。' }
     ]
@@ -3614,7 +3683,12 @@ window.EVENTS = [
       { text: '逐条回复，澄清。', tags: ['kpi_grind'],
         effects: { fatigue: +8, mood: -8, salary: +3 },
         result: '匿名用户没回。但你那段回复被截图传到外网了。' },
-      { text: '"匿名留言不予回应。" 关闭板块。', snark: true, tags: ['snark', 'refuse'],
+      { text: {
+          default: '"匿名留言不予回应。" 关闭板块。',
+          horse: '"匿名留言不予回应。" 关闭板块。',
+          ox: '"那个……匿名留言我们先不回应？" 关板块前犹豫了 3 分钟。'
+        },
+        snark: true, tags: ['snark', 'refuse'],
         effects: { mood: +10, stress: +5, salary: -5 },
         result: '员工小群里炸了。第二天 5 个人请病假。' },
       { text: '【王安石】私下查 IP，找出来约谈。',
@@ -3633,7 +3707,12 @@ window.EVENTS = [
       { text: '立刻回滚 + 写复盘报告。', tags: ['overtime', 'kpi_grind'],
         effects: { fatigue: +12, health: -5, skill: +5, salary: -3 },
         result: '20 分钟回滚完。复盘报告写了 6 页。老板说"下次不要犯"。' },
-      { text: '"测试覆盖率不够。锅不全在我。"', snark: true, tags: ['snark', 'politics'],
+      { text: {
+          default: '"测试覆盖率不够。锅不全在我。"',
+          horse: '"测试覆盖率不够。锅不全在我。"',
+          ox: '"那个……测试用例可能也有点漏，咱们一起看看？"'
+        },
+        snark: true, tags: ['snark', 'politics'],
         effects: { mood: +8, stress: +8, salary: -8 },
         result: '测试组长公开 PR 你的代码，证明 review 也是你做的。' },
       { text: '【橡皮鸭】"我重现一下，找到是配置项的边界 case。"',
@@ -3649,7 +3728,12 @@ window.EVENTS = [
     timeSlot: 1, client: true, jobs: ['design'], tags: ['client', 'team_lead'],
     text: '甲方一句话："美感不够。" 没了。你做了 12 版。',
     choices: [
-      { text: '"那您具体指哪一块？"', snark: true, tags: ['snark'],
+      { text: {
+          default: '"那您具体指哪一块？"',
+          horse: '"那您具体指哪一块？"',
+          ox: '"那个……能不能指一下具体哪里需要改？我好对照改。"'
+        },
+        snark: true, tags: ['snark'],
         effects: { mood: +10, stress: +5, salary: -5 },
         result: '甲方支吾了半天，最后说"整体感觉"。你想哭。' },
       { text: '推翻重来，从灵感板做起。', tags: ['overtime', 'kpi_grind'],
@@ -3667,7 +3751,12 @@ window.EVENTS = [
     timeSlot: 1, jobs: ['big_ops'], tags: ['boss'],
     text: '老板："明天投资人来看数据，你把曲线画得好看一点。" "好看"具体是 DAU 翻 1.5 倍。',
     choices: [
-      { text: '"做不到，数据真实是底线。"', snark: true, tags: ['snark', 'refuse'],
+      { text: {
+          default: '"做不到，数据真实是底线。"',
+          horse: '"做不到，数据真实是底线。"',
+          ox: '"老板……这个我可能没法操作，数据要保真。"（声音越说越小）'
+        },
+        snark: true, tags: ['snark', 'refuse'],
         effects: { mood: +15, stress: +8, salary: -10 },
         result: '老板让别人做了。但你这个季度的项目被砍。' },
       { text: '"行，但出问题不能算我。" 改了。', tags: ['submissive'],
