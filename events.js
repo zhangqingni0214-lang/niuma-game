@@ -3793,6 +3793,244 @@ window.EVENTS = [
         result: '你又找了两个下属接活。他们都说"我手头也满"。最后还是你自己写。'
       }
     ]
+  },
+
+  // ========================================
+  // v1.2 角色专属事件 — 🐴 小马（4 条）
+  // ========================================
+
+  {
+    id: 'horse_meeting_walk_out',
+    title: '当场离席',
+    timeSlot: 1, tags: ['meeting', 'boss'],
+    characters: ['horse'],
+    minDay: 5,
+    text: '周一晨会进入第 45 分钟。老板讲到"你们要把自己当公司的合伙人"——但 PPT 上的"合伙人福利"栏是空的。你看了一眼手表，再看了一眼茶水间。',
+    choices: [
+      {
+        text: '起身："对不起，我去厕所。" 然后再没回来。',
+        snark: true, tags: ['snark', 'meeting', 'boss'],
+        effects: { mood: +20, stress: -10, salary: -15 },
+        result: '老板继续讲。半小时后他给你发飞书："你去哪了？" 你回："还在拉。"'
+      },
+      {
+        text: '当场打断："您讲的合伙人，是有股份的那种合伙人吗？"',
+        snark: true, tags: ['snark', 'meeting', 'boss'],
+        effects: { mood: +18, stress: -3, salary: -12 },
+        result: '老板僵笑了 3 秒："这个回头单独聊。" 然后再没单独聊。会议纪要里你被记了一笔。'
+      },
+      {
+        text: '默默打开 Slack，假装在记笔记，实际在投简历。',
+        tags: ['fishing'],
+        effects: { mood: -3, stress: +5, salary: -2 },
+        result: '你投了 4 家。第二天 HR 给你预约了 "1on1 沟通"——她看见你的 LinkedIn 改了头像。'
+      }
+    ]
+  },
+
+  {
+    id: 'horse_glassdoor_review',
+    title: '脉脉打 1 星',
+    timeSlot: 2, tags: ['life', 'social'],
+    characters: ['horse'],
+    minDay: 3,
+    text: '凌晨 1 点你刷到脉脉。前同事正在评论你前公司："福利完美，团队 nice。" 你看了一眼自己的工位、加班记录、上周收到的"绩效改进通知"。',
+    choices: [
+      {
+        text: '打 1 星，标题《XX 公司：表面光鲜，里面全是镰刀》',
+        snark: true, tags: ['snark', 'social'],
+        effects: { mood: +18, stress: -3, salary: -10 },
+        result: '点赞 580+。HR 第二天通过 IP 反查到你，"那个号是不是你？" 你回："不是，但说得对。"'
+      },
+      {
+        text: '打 1 星，写得理性，列了 5 条"客观不足"',
+        snark: true, tags: ['snark'],
+        effects: { mood: +12, stress: -5, salary: -5 },
+        result: '评论区清一色"是的同事您说得对"。第二周公司内部"防舆情培训"上线。你在课上做了笔记。'
+      },
+      {
+        text: '关掉脉脉，"反正没人信打工人的话。"',
+        tags: ['submissive'],
+        effects: { mood: -5, stress: +5 }
+      }
+    ]
+  },
+
+  {
+    id: 'horse_dramatic_resignation_letter',
+    title: '5000 字辞职信',
+    timeSlot: 2, tags: ['boss'],
+    characters: ['horse'],
+    minDay: 8,
+    text: '凌晨 3 点你打开 Word，标题《致 XX 公司：一封终于不必再修改的邮件》。你已经写到第 3284 字。窗外天快亮了。',
+    choices: [
+      {
+        text: '点击"发送"，抄送全公司 +1 个老板私邮箱',
+        snark: true, tags: ['snark', 'boss'],
+        effects: { mood: +25, stress: -10, salary: -25 },
+        result: '上午 9:15 你的工位空了。HR 在群里发"祝前同事一帆风顺"——配了一张你工位上没拿走的发财树。'
+      },
+      {
+        text: '加到 5000 字，存草稿，截图发给最铁的同事',
+        snark: true, tags: ['snark'],
+        effects: { mood: +15, stress: -5, salary: -8 },
+        result: '同事回："姐 / 哥，您先别冲动。" 你回："我冲动了三年了。" 但还是没发。'
+      },
+      {
+        text: '关 Word，刷牙睡觉，明天再说',
+        effects: { fatigue: +12, stress: +5, mood: -3 },
+        result: '第二天你回工位，发现 Word 自动保存了。三天后你又写了 800 字。'
+      }
+    ]
+  },
+
+  {
+    id: 'horse_public_callout',
+    title: '群里 @ 老板要加班费',
+    timeSlot: 0, tags: ['overtime', 'boss'],
+    characters: ['horse'],
+    minDay: 4,
+    text: '昨晚你又加班到凌晨。早上部门群里老板 @ 全员"昨天大家辛苦了"。你看了一眼你的考勤截图——上个月加班 87 小时，没拿过一分加班费。',
+    choices: [
+      {
+        text: '群里直接回："@老板 昨晚加班按 1.5 倍算，今天能到账吗？"',
+        snark: true, tags: ['snark', 'overtime', 'boss'],
+        effects: { mood: +22, stress: -5, salary: -18 },
+        result: '群里一片寂静 4 分钟。老板回："私聊我。" 私聊里他说"年轻人别这么计较"。你截图保存了。'
+      },
+      {
+        text: '在小群里发："咱们集体算一下加班费？" 拉了 3 个同事',
+        snark: true, tags: ['snark', 'overtime'],
+        effects: { mood: +15, stress: +3, salary: -5 },
+        result: '3 个同事一致同意。一周后小群里只有你还在发数据。其他人忙起来"没空算"。'
+      },
+      {
+        text: '保持沉默，工位上默默把简历更新到 BOSS 直聘',
+        tags: ['fishing'],
+        effects: { mood: -3, stress: -3, skill: +2 },
+        result: '一周收到 2 个面试邀请。你笑了笑，没去。'
+      }
+    ]
+  },
+
+  // ========================================
+  // v1.2 角色专属事件 — 🐂 小牛（4 条）
+  // ========================================
+
+  {
+    id: 'ox_take_blame_for_others',
+    title: '主动背锅',
+    timeSlot: 1, tags: ['team', 'boss'],
+    characters: ['ox'],
+    minDay: 5,
+    text: '复盘会上老板问："这个 bug 是谁写的？" 你旁边的同事眼神飘了一下，所有人都在等。其实那个 bug 是同事写的，但他上周刚跟老婆吵架，最近脸色很差。',
+    choices: [
+      {
+        text: '"我写的。" 没解释。',
+        tags: ['submissive', 'flatter'],
+        effects: { mood: -5, stress: +5, salary: +5, health: +1 },
+        result: '老板说"那下次注意"。同事会后给你发了一句"……谢"。第二天他给你倒了一杯咖啡。'
+      },
+      {
+        text: '"是流程问题，咱们改一下评审环节。"',
+        tags: ['politics'],
+        effects: { skill: +5, stress: +3, salary: +3 },
+        result: '老板点头。但他知道你在替谁挡——他给你打了"团队意识好"。'
+      },
+      {
+        text: '"我不太清楚，可能要看下 git log。"',
+        tags: ['refuse'],
+        effects: { stress: +3, mood: -3, salary: -3 },
+        result: '老板真的让人去查 git log。同事被点名了。你避开他眼神。'
+      }
+    ]
+  },
+
+  {
+    id: 'ox_birthday_alone_at_office',
+    title: '工位过生日',
+    timeSlot: 2, tags: ['life'],
+    characters: ['ox'],
+    minDay: 6, once: true,
+    text: '今天是你的生日。家人朋友发了消息，你都回了"谢谢"。23:47，工位上只剩你。需求还没改完。你打开淘宝点了一个 9.9 的蛋糕券，自取。',
+    choices: [
+      {
+        text: '"再改一小时就回家。" 默默继续。',
+        tags: ['submissive', 'overtime'],
+        effects: { fatigue: +12, mood: -8, salary: +5, health: +1 },
+        result: '凌晨 1 点你回家。蛋糕券还没用。第二天老板群里发"小同志加班到这么晚，赞" + 一个表情。'
+      },
+      {
+        text: '"算了，不改了。" 关电脑回家。',
+        tags: ['refuse'],
+        effects: { mood: +10, stress: -5, salary: -5 },
+        result: '回家路上你给自己买了一份焦糖布丁。是这周最甜的一口。'
+      },
+      {
+        text: '发朋友圈："生日快乐我自己。" 仅自己可见。',
+        tags: ['social'],
+        effects: { mood: +3, stress: +3, fatigue: +5 },
+        result: '没人点赞。但你睡前看了两遍。'
+      }
+    ]
+  },
+
+  {
+    id: 'ox_cant_say_no_boss_kid',
+    title: '帮老板接娃',
+    timeSlot: 1, tags: ['boss'],
+    characters: ['ox'],
+    minDay: 4,
+    text: '老板下午突然找你："临时有个会，能不能帮我接一下娃？学校 4:30 放学，你那边离得近吧？"——其实离你 8 公里，但老板从来不查地理。',
+    choices: [
+      {
+        text: '"好的老板。" 然后请了半天假打车去接。',
+        tags: ['submissive', 'flatter'],
+        effects: { fatigue: +8, money: -80, salary: +8, mood: -5, health: +1 },
+        result: '老板娘后来给你发了一个 ¥50 红包。但你打车花了 ¥80。你笑了一下没说话。'
+      },
+      {
+        text: '"那个……我下午有个评审会。" 拒绝了。',
+        tags: ['refuse'],
+        effects: { mood: +8, stress: +3, salary: -5 },
+        result: '老板回"哦那算了"。第二天评审会上你的提案被打回了——理由很模糊。'
+      },
+      {
+        text: '"可以。但是路费 + 误工费您看着算？"',
+        snark: true, tags: ['snark'],
+        effects: { mood: +12, stress: -3, salary: -8 },
+        result: '老板说"小同志你算得真细"。但他给了 ¥100。下周他又找别人接娃了。'
+      }
+    ]
+  },
+
+  {
+    id: 'ox_kitchen_helper',
+    title: '默默洗杯子',
+    timeSlot: 1, tags: ['leisure', 'team'],
+    characters: ['ox'],
+    minDay: 3,
+    text: '茶水间堆着 7 个脏杯子，3 个咖啡渍漫到台面。你刚泡完咖啡，看了一眼水池。没人说要洗。',
+    choices: [
+      {
+        text: '默默洗完，连台面也擦了。',
+        tags: ['submissive'],
+        effects: { fatigue: +3, mood: +3, salary: +2, health: +1 },
+        result: '没人发现。但隔壁组的总监经过看见了，对你点了点头。这一眼后来出现在 360 评估的"低调靠谱"项。'
+      },
+      {
+        text: '只洗自己的杯子，其他不管。',
+        tags: ['refuse'],
+        effects: { mood: 0 },
+        result: '你回工位时听见 PM 在群里发"茶水间谁用完不收拾"。你点开消息没回。'
+      },
+      {
+        text: '群里 @ 大家"茶水间脏了，麻烦各位用完整理一下。"',
+        snark: true, tags: ['snark'],
+        effects: { mood: +5, stress: +3, salary: -3 },
+        result: '群里有人回"行行行"。没人去洗。第二天杯子更多了。HR 给你打了"沟通过于直接"。'
+      }
+    ]
   }
 
 ];
