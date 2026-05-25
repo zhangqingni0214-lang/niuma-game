@@ -426,6 +426,80 @@ const PRESETS = {
       });
     });
   },
+
+  // ===== v1.4.0 戏剧重音（4 个）=====
+
+  // A. 终局触发 - 角色之死，低音长尾 + 心跳停顿感
+  ending_strike: (ctx, dest) => {
+    // 低音"咚"
+    tone(ctx, dest, {
+      type: 'sine', freq: 65, attack: 0.005, decay: 0.4, release: 0.6,
+      sustain: 0.3, peak: 0.4, lpf: 600,
+    });
+    // 同时加一个 130Hz 五度叠
+    tone(ctx, dest, {
+      type: 'sine', freq: 130, attack: 0.005, decay: 0.3, release: 0.5,
+      sustain: 0.2, peak: 0.18, lpf: 800,
+      startOffset: 0.01,
+    });
+    // 远处余响 - 闷锣
+    tone(ctx, dest, {
+      type: 'triangle', freq: 98, attack: 0.06, decay: 0.6, release: 1.2,
+      sustain: 0.15, peak: 0.12, lpf: 400,
+      startOffset: 0.1,
+    });
+  },
+
+  // B. Day 7 绩效正常发放 - 上行三音，命运结算"咚"
+  bonus_strike: (ctx, dest) => {
+    [523, 659, 784].forEach((f, i) => {  // C-E-G 大调
+      tone(ctx, dest, {
+        type: 'sine', freq: f, attack: 0.005, decay: 0.15, release: 0.3,
+        sustain: 0.5, peak: 0.18 - i * 0.02, lpf: 3000,
+        startOffset: i * 0.06,
+      });
+    });
+    // 收尾低音"咚"
+    tone(ctx, dest, {
+      type: 'sine', freq: 196, attack: 0.005, decay: 0.2, release: 0.4,
+      sustain: 0.2, peak: 0.15, lpf: 800,
+      startOffset: 0.2,
+    });
+  },
+
+  // C. Day 7 绩效倒挂 - 下行半音 + 玻璃裂声
+  bonus_reverse_strike: (ctx, dest) => {
+    [659, 622, 587].forEach((f, i) => {  // E-Eb-D 下行半音
+      tone(ctx, dest, {
+        type: 'triangle', freq: f, attack: 0.005, decay: 0.12, release: 0.25,
+        sustain: 0.3, peak: 0.14, lpf: 2400,
+        startOffset: i * 0.05,
+      });
+    });
+    // 噪声"裂" - 用高频快速衰减
+    tone(ctx, dest, {
+      type: 'sawtooth', freq: 3200, attack: 0.001, decay: 0.05, release: 0.1,
+      sustain: 0, peak: 0.08, lpf: 4000,
+      startOffset: 0.18,
+    });
+  },
+
+  // D. 解锁里程碑（新结局/技能/标签）- 像素游戏经典升调
+  unlock_milestone: (ctx, dest) => {
+    [659, 880, 1175].forEach((f, i) => {  // E-A-D 五度递进
+      tone(ctx, dest, {
+        type: 'square', freq: f, attack: 0.002, decay: 0.05, release: 0.08,
+        sustain: 0.7, peak: 0.12 - i * 0.01, lpf: 2800,
+        startOffset: i * 0.06,
+      });
+    });
+    // 收尾闪音 + 高八度
+    tone(ctx, dest, {
+      type: 'sine', freq: 2349, attack: 0.001, decay: 0.04, release: 0.1,
+      sustain: 0.5, peak: 0.1, lpf: 4000,
+      startOffset: 0.25,
+    });
+  },
 };
 
 // ============================================================

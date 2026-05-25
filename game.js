@@ -756,7 +756,11 @@ const REVERSE_QUIPS = [
 ];
 
 function showBonusModal(data, onClose) {
-  if (window.SFX) SFX.play(data.type === 'reverse' ? 'bonus_reverse' : 'bonus');
+  // v1.4 重音：绩效正常发放 → bonus_strike；倒挂 → bonus_reverse_strike
+  if (window.SFX) {
+    if (data.type === 'reverse') SFX.play('bonus_reverse_strike');
+    else SFX.play('bonus_strike');
+  }
   const titleEl = $('#bonus-title');
   const iconEl = $('#bonus-icon');
   const mainEl = $('#bonus-main');
@@ -1158,15 +1162,23 @@ function finalizeLife(ending) {
   let karmaGain = state.day;
   // v0.9.10: 通关结局额外 +10 业力
   if (ending.id === 'survival') karmaGain += 10;
+  let hasUnlockedMilestone = false;  // v1.4 重音：解锁里程碑标记
   if (!archive.unlockedEndings.includes(ending.id)) {
     karmaGain += 5;
     archive.unlockedEndings.push(ending.id);
+    hasUnlockedMilestone = true;
   }
   for (const t of state.tags) {
     if (!archive.unlockedTags.includes(t.id)) {
       karmaGain += 2;
       archive.unlockedTags.push(t.id);
+      hasUnlockedMilestone = true;
     }
+  }
+  // v1.4 重音：本局首次解锁结局或新标签 → 1.5 秒后播解锁里程碑音
+  // 延迟是为了让前面的 ending_strike + death 重音先响完
+  if (hasUnlockedMilestone && window.SFX) {
+    setTimeout(() => SFX.play('unlock_milestone'), 1500);
   }
   for (const id of state.seenEventIds) {
     if (!archive.seenEventIds.includes(id)) {
@@ -1438,7 +1450,13 @@ function nextStep() {
 
 function showEnding(ending) {
   if (window.SFX) {
-    SFX.play(ending.id === 'survival' ? 'survive' : 'death');
+    // v1.4 重音：终局触发瞬间一记低音锣 + 戏剧停顿
+    if (ending.id !== 'survival') {
+      SFX.play('ending_strike');
+      setTimeout(() => SFX.play('death'), 500);  // 0.5s 后追加原 death 音效
+    } else {
+      SFX.play('survive');
+    }
     // v0.9.8: 结局 BGM 慢渐入 3 秒，给玩家先看完结局名再听音乐
     SFX.playBGM('ending', 3);
   }
