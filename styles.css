@@ -57,8 +57,8 @@ html, body {
 .menu-hero-bot {
   width: 100%;
   flex: 0 0 37vh;
-  /* center top：牛角/牛头完整，裁掉底部桌面腰部 */
-  background: url('assets/ox_4x5.png') center top / cover no-repeat;
+  /* center 20%：取景框向下挪一档，减少头部留白，小牛往上靠 */
+  background: url('assets/ox_4x5.png') center 20% / cover no-repeat;
   image-rendering: pixelated;
 }
 .menu-mid {
