@@ -334,14 +334,18 @@ function run(label, charId, jobId, policy, runs, withRescue=false, skillsArr=nul
 }
 
 const RUNS = parseInt(process.argv[2]) || 1000;
+const MATRIX_MODE = process.argv.includes('--matrix');
 console.log(`========== Monte Carlo · ${RUNS} runs / config ==========`);
 
-const setups = [
-  ['horse + outsource', 'horse', 'outsource'],
-  ['horse + backend',   'horse', 'backend'],
-  ['ox    + outsource', 'ox',    'outsource'],
-  ['ox    + backend',   'ox',    'backend'],
-];
+// 默认 4 组合用于策略对比；--matrix 模式跑完整 2 × 9 = 18 组合
+const setups = MATRIX_MODE
+  ? W.CHARACTERS.flatMap(c => W.JOBS.map(j => [`${c.id.padEnd(5)} + ${j.id}`, c.id, j.id]))
+  : [
+      ['horse + outsource', 'horse', 'outsource'],
+      ['horse + backend',   'horse', 'backend'],
+      ['ox    + outsource', 'ox',    'outsource'],
+      ['ox    + backend',   'ox',    'backend'],
+    ];
 
 console.log('\n========== 策略 A：随机选项 ==========');
 for (const [label, c, j] of setups) run(label, c, j, policyRandom, RUNS);
@@ -374,5 +378,63 @@ for (const sc of SKILL_SCENARIOS) {
     const result = run(label, c, j, policyBalanced, RUNS, true, sc.skills);
     totalSurvival += result.survivalRate;
   }
-  console.log(`>>> 4 组合平均通关率: ${(totalSurvival / setups.length).toFixed(1)}%`);
+  console.log(`>>> ${setups.length} 组合平均通关率: ${(totalSurvival / setups.length).toFixed(1)}%`);
+}
+
+// ============================================================
+// --matrix 模式：跑完整 2 × 9 = 18 组合 + 写报告文件
+// ============================================================
+if (MATRIX_MODE) {
+  console.log('\n\n========== 全矩阵报告（2 角色 × 9 职业）==========');
+  const lines = [];
+  lines.push('# Sim Matrix Report');
+  lines.push(`Date: ${new Date().toISOString()}`);
+  lines.push(`Runs per cell: ${RUNS}`);
+  lines.push('');
+  lines.push('| Character | Job | 通关率 | avg存活天数 | avg存款 | 主要死法 (top 2) |');
+  lines.push('|---|---|---|---|---|---|');
+
+  // 注：上面 setups 已经覆盖 18 组合，但是按 policyBalanced + rescue 没单独跑一遍
+  // 这里专门为矩阵跑一遍，每个 cell 输出 markdown 一行
+  const anomalies = [];
+  for (const [label, c, j] of setups) {
+    const dist = {}, days = [];
+    let totalMoney = 0, survivalCount = 0;
+    for (let i = 0; i < RUNS; i++) {
+      const r = simulateOne(c, j, policyBalanced, true, []);  // 基线无技能
+      dist[r.ending] = (dist[r.ending] || 0) + 1;
+      days.push(r.day);
+      totalMoney += r.money;
+      if (r.ending === 'survival') survivalCount++;
+    }
+    const avgDay = (days.reduce((a,b)=>a+b,0) / RUNS).toFixed(1);
+    const survRate = (survivalCount / RUNS * 100).toFixed(1);
+    const top2 = Object.entries(dist).sort((a,b) => b[1]-a[1]).slice(0, 2)
+      .map(([k,v]) => `${k} ${(v/RUNS*100).toFixed(0)}%`).join(' / ');
+    const avgMoney = Math.round(totalMoney / RUNS);
+    lines.push(`| ${c} | ${j} | ${survRate}% | ${avgDay} | ¥${avgMoney} | ${top2} |`);
+
+    // 异常检测
+    if (parseFloat(survRate) > 25) anomalies.push(`⚠️ ${label}: 通关率 ${survRate}% 偏高（> 25%）`);
+    if (parseFloat(survRate) < 0.1 && parseFloat(avgDay) < 3) anomalies.push(`⚠️ ${label}: 通关率 ${survRate}% 偏低 + 平均存活 ${avgDay} 天，可能 too punishing`);
+
+    console.log(`  ${label}  通关 ${survRate}%  avg ${avgDay} 天  ¥${avgMoney}  | ${top2}`);
+  }
+
+  lines.push('');
+  if (anomalies.length > 0) {
+    lines.push('## ⚠️ 异常组合');
+    anomalies.forEach(a => lines.push('- ' + a));
+  } else {
+    lines.push('## ✅ 无异常组合');
+  }
+  lines.push('');
+
+  const fs = require('fs');
+  fs.writeFileSync('sim-report.md', lines.join('\n'));
+  console.log('\n📊 完整报告已写入 sim-report.md');
+  if (anomalies.length > 0) {
+    console.log('\n异常告警：');
+    anomalies.forEach(a => console.log('  ' + a));
+  }
 }
