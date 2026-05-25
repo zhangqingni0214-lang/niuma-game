@@ -338,15 +338,24 @@ function applyEffects(effects, ctx) {
   }
 
   // v1.1 钝化术：心情永远 ≥ 30，但上限锁 90（兜底+封顶的二级人格）
+  // 再平衡：mood floor 30 只在 stress < 70 时生效，压力爆表时心情依然能崩
+  // （否则 mood/stress 双危机制被破坏，depression ending 触发不到）
   if (unlocked.has('numb_immune')) {
-    state.stats.mood = clamp(state.stats.mood, 30, 90);
+    if (state.stats.stress < 70) {
+      state.stats.mood = clamp(state.stats.mood, 30, 90);
+    } else {
+      // 高压时仍封顶 90，但不再保底 30
+      state.stats.mood = clamp(state.stats.mood, 0, 90);
+    }
   }
 
   // 怼老板扣月薪：snark 选项扣月薪的 2.5%（四舍五入到百元）
   // v0.9.6 小马专属：罚款 ×0.8（社畜里的小老板娘，骂得起）
   // v1.1 律师朋友：work 场景再 -50%；政治动物：再 -30%（叠加）
+  // 再平衡：减免最多 70%（保留 30% 基数罚款，避免"嘴硬零成本"）
   if (choice?.snark) {
-    let fine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+    const baseFine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+    let fine = baseFine;
     if (state.character === 'horse') fine = Math.round(fine * 0.8 / 100) * 100;
     // 律师朋友：work 场景 snark 罚款 ×0.5
     if (unlocked.has('lawyer_friend') && isWorkScopeEvent(ev)) {
@@ -356,6 +365,9 @@ function applyEffects(effects, ctx) {
     if (unlocked.has('political_animal')) {
       fine = Math.round(fine * 0.7 / 100) * 100;
     }
+    // 再平衡封顶：所有减免叠加后，至少留 30% 基数（避免后期玩家完全免罚）
+    const minFine = Math.round(baseFine * 0.3 / 100) * 100;
+    if (baseFine > 0 && fine < minFine) fine = minFine;
     if (fine > 0) {
       state.money -= fine;
       state.snarkFine = (state.snarkFine || 0) + fine;

@@ -20,9 +20,14 @@ const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 // ============================================================
 // 核心游戏逻辑（复刻 game.js 的关键流程，无 UI）
 // ============================================================
+// work tag 集合 - 复刻 game.js WORK_TAGS
+const WORK_TAGS_SIM = new Set(['hr', 'client', 'team_lead', 'boss', 'pm', 'team', 'meeting', 'overtime', 'zeitgeist', 'tech']);
+const isWorkScopeEventSim = (ev) => (ev?.tags || []).some(t => WORK_TAGS_SIM.has(t));
+
 function applyEffects(state, effects, ev, choice, character) {
   if (!effects) return;
   const adj = { ...effects };
+  const unlocked = state.skills || new Set();
 
   // 甲方 ×1.2 放大负向
   if (ev?.client) {
@@ -46,6 +51,19 @@ function applyEffects(state, effects, ev, choice, character) {
     }
   }
 
+  // v1.1 Tier 5 skill passives（同步 game.js）
+  const chTags = choice?.tags || [];
+  // 政治动物：politics 类选项再 +5 salary（叠加 office_politics 的 +3 = +8）
+  if (unlocked.has('political_animal') &&
+      (chTags.includes('politics') || choice?.requiredSkill === 'office_politics')) {
+    adj.salary = (adj.salary || 0) + 5;
+  }
+  // 斜杠流派：副业 money 收入 +50%
+  if (unlocked.has('side_hustle_pro') &&
+      (ev?.pool === 'side_hustle' || (ev?.tags || []).includes('side') || chTags.includes('side_work'))) {
+    if (adj.money && adj.money > 0) adj.money = Math.round(adj.money * 1.5);
+  }
+
   // 全局难度调节（同步 game.js v0.9.6）
   if (adj.salary && adj.salary < 0)   adj.salary  = Math.ceil(adj.salary * 0.7);
   if (adj.fatigue && adj.fatigue > 0) adj.fatigue = Math.ceil(adj.fatigue * 0.8);
@@ -57,11 +75,35 @@ function applyEffects(state, effects, ev, choice, character) {
     else if (state.stats[k] !== undefined) state.stats[k] = clamp(state.stats[k] + v, 0, 100);
   }
 
-  // 怼老板罚款（小马 ×0.8）
+  // v1.1 钝化术：stress < 70 时 mood floor 30 + ceil 90；否则只 ceil 90
+  if (unlocked.has('numb_immune')) {
+    if (state.stats.stress < 70) {
+      state.stats.mood = clamp(state.stats.mood, 30, 90);
+    } else {
+      state.stats.mood = clamp(state.stats.mood, 0, 90);
+    }
+  }
+
+  // 怼老板罚款（小马 ×0.8 + Tier 5 减免 + 30% 封顶）
   if (choice?.snark) {
-    let fine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+    const baseFine = Math.round((state.salaryAmount || 0) * 0.025 / 100) * 100;
+    let fine = baseFine;
     if (state.character === 'horse') fine = Math.round(fine * 0.8 / 100) * 100;
+    if (unlocked.has('lawyer_friend') && isWorkScopeEventSim(ev)) {
+      fine = Math.round(fine * 0.5 / 100) * 100;
+    }
+    if (unlocked.has('political_animal')) {
+      fine = Math.round(fine * 0.7 / 100) * 100;
+    }
+    // 再平衡封顶：至少 30% 基数
+    const minFine = Math.round(baseFine * 0.3 / 100) * 100;
+    if (baseFine > 0 && fine < minFine) fine = minFine;
     state.money -= fine;
+  }
+
+  // v1.1 fishing_zen: 心情 < 40 时回到 40
+  if (unlocked.has('fishing_zen') && state.stats.mood < 40) {
+    state.stats.mood = 40;
   }
 
   // 看病费简化：health drop >=10 时按 2/3 概率扣 ¥200
@@ -194,7 +236,7 @@ function maybeRescue(state) {
 // ============================================================
 // 单局
 // ============================================================
-function simulateOne(charId, jobId, policy, withRescue) {
+function simulateOne(charId, jobId, policy, withRescue, skillsArr) {
   const character = W.CHARACTERS.find(c => c.id === charId);
   const job = W.JOBS.find(j => j.id === jobId);
   const stats = { ...job.baseStats };
@@ -208,12 +250,13 @@ function simulateOne(charId, jobId, policy, withRescue) {
     salaryAmount: job.salary,
     initialSalary: stats.salary,
     bonusPaidDay7: false,
-    history: { snarkCount: 0, sideHustleCount: 0, fishingCount: 0, coffeeCount: 0, overtimeCount: 0, totalChoices: 0 },
+    history: { snarkCount: 0, snarkWorkCount: 0, snarkLifeCount: 0, sideHustleCount: 0, fishingCount: 0, coffeeCount: 0, overtimeCount: 0, totalChoices: 0 },
     seenEventIds: [],
     character: charId,
     profile: { jobId },
     rescue: !!withRescue,
     _rescuedOnce: false,
+    skills: new Set(skillsArr || []),  // v1.1 新增：技能集合传入
   };
 
   let ending = null;
@@ -266,25 +309,28 @@ function simulateOne(charId, jobId, policy, withRescue) {
 // ============================================================
 // 批量跑
 // ============================================================
-function run(label, charId, jobId, policy, runs, withRescue=false) {
+function run(label, charId, jobId, policy, runs, withRescue=false, skillsArr=null) {
   const dist = {}, days = [];
   let totalStats = { health: 0, stress: 0, mood: 0, fatigue: 0, skill: 0, salary: 0 };
-  let totalMoney = 0, rescuedCount = 0;
+  let totalMoney = 0, rescuedCount = 0, survivalCount = 0;
   for (let i = 0; i < runs; i++) {
-    const r = simulateOne(charId, jobId, policy, withRescue);
+    const r = simulateOne(charId, jobId, policy, withRescue, skillsArr);
     dist[r.ending] = (dist[r.ending] || 0) + 1;
     days.push(r.day);
     for (const k in totalStats) totalStats[k] += r.stats[k];
     totalMoney += r.money;
     if (r.rescued) rescuedCount++;
+    if (r.ending === 'survival') survivalCount++;
   }
   const avgDay = (days.reduce((a,b)=>a+b,0) / runs).toFixed(1);
   const sorted = Object.entries(dist).sort((a,b) => b[1]-a[1]);
+  const survivalRate = (survivalCount / runs * 100).toFixed(1);
   const rescuedRate = withRescue ? `  救援率 ${(rescuedCount/runs*100).toFixed(0)}%` : '';
-  console.log(`\n[${label}]  avg存活 ${avgDay} 天  avg存款 ¥${(totalMoney/runs).toFixed(0)}${rescuedRate}`);
+  console.log(`\n[${label}]  avg存活 ${avgDay} 天  通关率 ${survivalRate}%  avg存款 ¥${(totalMoney/runs).toFixed(0)}${rescuedRate}`);
   for (const [k, v] of sorted) {
     console.log(`  ${k.padEnd(24)} ${String(v).padStart(4)} (${(v/runs*100).toFixed(1)}%)`);
   }
+  return { survivalRate: parseFloat(survivalRate), avgMoney: totalMoney / runs };
 }
 
 const RUNS = parseInt(process.argv[2]) || 1000;
@@ -308,3 +354,25 @@ for (const [label, c, j] of setups) run(label, c, j, policySnarky, RUNS);
 
 console.log('\n========== 策略 D：保护虚弱属性 + 会自救（最贴近真实玩家） ==========');
 for (const [label, c, j] of setups) run(label, c, j, policyBalanced, RUNS, true);
+
+// ============================================================
+// v1.1 Tier 5 技能再平衡验证：跑 3 组对照
+// ============================================================
+console.log('\n\n========== Tier 5 再平衡对照 ==========');
+console.log('（policy=balanced + rescue，比较解锁不同技能时的通关率）\n');
+
+const SKILL_SCENARIOS = [
+  { label: '基线（无任何技能）',                       skills: [] },
+  { label: '中期（Tier 1-4 全开）',                    skills: ['coffee_immune','thick_skin','rubber_duck','social_butterfly','side_hustle','office_politics','promotion_radar','fishing_zen','iron_will','nirvana_rebirth'] },
+  { label: '后期（Tier 1-5 全开）',                    skills: ['coffee_immune','thick_skin','rubber_duck','social_butterfly','side_hustle','office_politics','promotion_radar','fishing_zen','iron_will','nirvana_rebirth','boss_reading','lawyer_friend','side_hustle_pro','political_animal','numb_immune'] },
+];
+
+for (const sc of SKILL_SCENARIOS) {
+  console.log(`\n--- ${sc.label} ---`);
+  let totalSurvival = 0;
+  for (const [label, c, j] of setups) {
+    const result = run(label, c, j, policyBalanced, RUNS, true, sc.skills);
+    totalSurvival += result.survivalRate;
+  }
+  console.log(`>>> 4 组合平均通关率: ${(totalSurvival / setups.length).toFixed(1)}%`);
+}

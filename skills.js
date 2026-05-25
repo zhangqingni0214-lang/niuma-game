@@ -175,7 +175,7 @@ window.SKILLS = [
     cost: 150,
     requires: ['iron_will', 'fishing_zen'],
     type: 'passive',
-    description: '万事不动心。心情永远 ≥ 30（兜底），但代价是上限锁 90。终身 buff，激进玩家的保险绳。',
+    description: '万事不动心。压力 < 70 时心情兜底 30，上限锁 90。压力爆表时兜底失效——保险绳不是无敌盾。',
   },
 ];
 
