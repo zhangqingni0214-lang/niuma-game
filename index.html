@@ -9,7 +9,7 @@
   <meta property="og:type" content="website" />
   <title>牛马公司</title>
   <!-- Build: v1.0.0 ship · 2026-05-23 -->
-  <link rel="stylesheet" href="styles.css?v=ship8" />
+  <link rel="stylesheet" href="styles.css?v=ship9" />
   <link rel="stylesheet" href="sharecard.css?v=ship1" />
 </head>
 <body>
@@ -31,6 +31,17 @@
         <button id="btn-continue" class="menu-btn secondary">继续上钟</button>
         <button id="btn-skills" class="menu-btn skill">嘴硬秘籍</button>
         <button id="btn-archive" class="menu-btn archive">已故牛马名册</button>
+        <!-- 结局收藏进度条 -->
+        <div class="endings-progress" id="endings-progress">
+          <div class="endings-progress-label">
+            <span class="ep-icon">💀</span>
+            <span class="ep-text">已解锁结局</span>
+            <span class="ep-count" id="ep-count">0 / 16</span>
+          </div>
+          <div class="endings-progress-bar">
+            <div class="endings-progress-fill" id="ep-fill" style="width:0%"></div>
+          </div>
+        </div>
         <button id="btn-destroy" class="menu-btn danger">销毁前世</button>
         <div class="menu-archive-meta" id="archive-summary"></div>
         <div class="menu-foot">这只是一场找回喘息的演习。</div>
@@ -286,6 +297,6 @@
   <script src="sfx.js?v=ship12"></script>
   <script src="sharecard.js?v=ship1"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="game.js?v=ship20"></script>
+  <script src="game.js?v=ship21"></script>
 </body>
 </html>

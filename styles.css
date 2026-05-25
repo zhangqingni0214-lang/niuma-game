@@ -182,6 +182,57 @@ html, body {
 #screen-menu .menu-btn.danger::before { display: none; }
 
 #screen-menu .menu-archive-meta { display: none; }
+
+/* ===== 结局收藏进度条（菜单卡内） ===== */
+#screen-menu .endings-progress {
+  width: 70%;
+  margin: 6px auto 4px;
+  font-family: 'Vonwaon', monospace;
+}
+#screen-menu .endings-progress-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #2b2b2b;
+  margin-bottom: 4px;
+}
+#screen-menu .endings-progress-label .ep-icon { font-size: 12px; }
+#screen-menu .endings-progress-label .ep-text { flex: 1; }
+#screen-menu .endings-progress-label .ep-count {
+  font-weight: 700;
+  color: #c1322a;
+}
+/* 像素风进度条：黑边、灰底虚线、黄色像素填充 */
+#screen-menu .endings-progress-bar {
+  position: relative;
+  height: 10px;
+  background:
+    repeating-linear-gradient(90deg,
+      #b8a78a 0, #b8a78a 2px,
+      transparent 2px, transparent 4px);
+  border: 2px solid #2b2b2b;
+  border-radius: 1px;
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+#screen-menu .endings-progress-fill {
+  height: 100%;
+  background: #f4d150;
+  background-image:
+    linear-gradient(0deg,
+      #d4a843 0, #d4a843 2px,
+      #f4d150 2px, #f4d150 100%);
+  transition: width 0.4s ease-out;
+}
+/* 满图鉴：金黄+边框闪光 */
+#screen-menu .endings-progress.full .endings-progress-fill {
+  background: #ffa500;
+  box-shadow: 0 0 4px #ffd700 inset;
+}
+#screen-menu .endings-progress.full .ep-count::after {
+  content: ' 🏆';
+}
 #screen-menu .menu-foot {
   margin-top: 4px;
   padding-top: 3px;

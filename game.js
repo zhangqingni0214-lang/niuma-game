@@ -1204,6 +1204,15 @@ function renderMenu() {
     ? `已死 ${archive.totalLives} 次 · 终局解锁 ${archive.unlockedEndings.length}/${window.ENDINGS.length} · 业力 ${archive.karma}`
     : '尚未投胎，准备开怼。';
   $('#menu-karma').textContent = `业力 ${archive.karma}`;
+
+  // 结局收藏进度条
+  const unlockedCount = archive.unlockedEndings.length;
+  const totalEndings = window.ENDINGS.length;
+  const pct = totalEndings > 0 ? Math.round(unlockedCount / totalEndings * 100) : 0;
+  $('#ep-count').textContent = `${unlockedCount} / ${totalEndings}`;
+  $('#ep-fill').style.width = pct + '%';
+  $('#endings-progress').classList.toggle('full', unlockedCount >= totalEndings);
+
   showScreen('screen-menu');
   if (window.SFX) SFX.playBGM('menu');
 }
