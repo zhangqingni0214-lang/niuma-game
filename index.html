@@ -9,7 +9,7 @@
   <meta property="og:type" content="website" />
   <title>牛马公司</title>
   <!-- Build: v1.0.0 ship · 2026-05-23 -->
-  <link rel="stylesheet" href="styles.css?v=ship10" />
+  <link rel="stylesheet" href="styles.css?v=ship11" />
   <link rel="stylesheet" href="sharecard.css?v=ship1" />
 </head>
 <body>
@@ -133,6 +133,35 @@
       <button class="back-link" id="btn-back-menu">‹ 暂时撤离</button>
     </section>
 
+    <!-- 满图鉴 · 地府名人堂（全屏接管，仅在解锁最后一个结局时显示） -->
+    <section id="screen-museum-complete" class="screen">
+      <div class="museum-wrap">
+        <div class="museum-stamp">🏆 满图鉴</div>
+        <div class="museum-title">地府人事局名人堂</div>
+        <div class="museum-honor">"职场轮回首席死亡专家" 终身荣誉称号</div>
+
+        <div class="museum-final-death">
+          <div class="museum-final-label">你最后一次挂在：</div>
+          <div class="museum-final-name" id="museum-final-name">—</div>
+          <div class="museum-final-summary" id="museum-final-summary">—</div>
+        </div>
+
+        <div class="museum-section-title">💀 16 种死法 全部解锁</div>
+        <div class="museum-endings-grid" id="museum-endings-grid"></div>
+
+        <div class="museum-section-title">📊 你的牛马生涯</div>
+        <div class="museum-stats" id="museum-stats"></div>
+
+        <div class="museum-section-title">🏅 成就 <span id="museum-achievement-count">0 / 0</span></div>
+        <div class="museum-achievement-list" id="museum-achievement-list"></div>
+
+        <div class="ending-btn-row">
+          <button class="menu-btn primary" id="museum-share">📸 分享</button>
+          <button class="menu-btn secondary" id="museum-back">🪦 回地府</button>
+        </div>
+      </div>
+    </section>
+
     <!-- 结局页 -->
     <section id="screen-ending" class="screen">
       <div class="ending-wrap">
@@ -183,12 +212,14 @@
         <button class="tab-btn" data-tab="rank">排行榜</button>
         <button class="tab-btn" data-tab="endings">终局</button>
         <button class="tab-btn" data-tab="events">事件</button>
+        <button class="tab-btn" data-tab="bio">自传</button>
       </div>
 
       <div id="archive-lives"   class="archive-tab-content"></div>
       <div id="archive-rank"    class="archive-tab-content hidden"></div>
       <div id="archive-endings" class="archive-tab-content hidden"></div>
       <div id="archive-events"  class="archive-tab-content hidden"></div>
+      <div id="archive-bio"     class="archive-tab-content hidden"></div>
     </section>
 
   </div>
@@ -293,10 +324,11 @@
   <script src="events.js?v=ship12"></script>
   <script src="endings.js?v=ship7"></script>
   <script src="skills.js?v=ship12"></script>
+  <script src="achievements.js?v=ship1"></script>
   <script src="tags.js?v=ship1"></script>
   <script src="sfx.js?v=ship13"></script>
   <script src="sharecard.js?v=ship1"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="game.js?v=ship24"></script>
+  <script src="game.js?v=ship25"></script>
 </body>
 </html>

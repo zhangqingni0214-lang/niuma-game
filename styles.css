@@ -1330,6 +1330,238 @@ html, body {
   flex: 1;
 }
 
+/* ===== v1.4 满图鉴 · 地府名人堂（全屏接管）===== */
+#screen-museum-complete {
+  padding: 16px;
+  background: linear-gradient(180deg, #2a1f14 0%, #1a1108 100%);
+  color: #f4d150;
+}
+#screen-museum-complete .museum-wrap {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+#screen-museum-complete .museum-stamp {
+  display: inline-block;
+  font-size: 22px;
+  color: #ffd700;
+  background: #2b2b2b;
+  border: 3px solid #ffd700;
+  padding: 6px 16px;
+  border-radius: 4px;
+  margin: 20px 0 8px;
+  letter-spacing: 4px;
+  box-shadow: 0 0 12px #ffd70080;
+}
+#screen-museum-complete .museum-title {
+  font-size: 18px;
+  color: #f4d150;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+#screen-museum-complete .museum-honor {
+  font-size: 12px;
+  color: #c8a979;
+  font-style: italic;
+  margin-bottom: 16px;
+}
+#screen-museum-complete .museum-final-death {
+  background: rgba(0,0,0,0.4);
+  border: 1px dashed #c8a979;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  color: #ecd9b9;
+}
+#screen-museum-complete .museum-final-label {
+  font-size: 10px;
+  color: #888;
+  margin-bottom: 4px;
+}
+#screen-museum-complete .museum-final-name {
+  font-size: 14px;
+  color: #f4d150;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+#screen-museum-complete .museum-final-summary {
+  font-size: 11px;
+  color: #ddd1bd;
+  line-height: 1.6;
+  text-align: left;
+}
+#screen-museum-complete .museum-section-title {
+  text-align: left;
+  font-size: 13px;
+  color: #f4d150;
+  margin: 14px 0 6px;
+  border-bottom: 1px solid #c8a97950;
+  padding-bottom: 2px;
+}
+#screen-museum-complete .museum-endings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+  padding: 8px;
+}
+#screen-museum-complete .museum-ending-cell {
+  background: #4a3a28;
+  border: 1px solid #c8a979;
+  border-radius: 3px;
+  padding: 6px 4px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: #ecd9b9;
+  text-align: center;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#screen-museum-complete .museum-ending-cell .me-icon { font-size: 14px; margin-right: 2px; }
+#screen-museum-complete .museum-stats {
+  background: rgba(0,0,0,0.4);
+  border: 1px dashed #c8a979;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #ecd9b9;
+  text-align: left;
+}
+#screen-museum-complete .museum-stats .ms-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dotted #c8a97930;
+  padding: 2px 0;
+}
+#screen-museum-complete .museum-stats .ms-row:last-child { border-bottom: none; }
+#screen-museum-complete .museum-stats .ms-val {
+  color: #f4d150;
+  font-weight: 700;
+}
+#screen-museum-complete .museum-achievement-list {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid #c8a97950;
+  border-radius: 6px;
+  padding: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+#screen-museum-complete .museum-achievement-list .ach-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  padding: 4px 0;
+  line-height: 1.4;
+  color: #ecd9b9;
+  border-bottom: 1px dotted #c8a97930;
+  text-align: left;
+}
+#screen-museum-complete .museum-achievement-list .ach-row:last-child { border-bottom: none; }
+#screen-museum-complete .museum-achievement-list .ach-icon { font-size: 16px; flex: 0 0 20px; }
+#screen-museum-complete .museum-achievement-list .ach-name { font-weight: 700; color: #f4d150; }
+#screen-museum-complete .museum-achievement-list .ach-desc { color: #c8a979; margin-left: 4px; font-size: 10px; }
+#screen-museum-complete .museum-achievement-list .ach-locked { opacity: 0.35; }
+#screen-museum-complete .ending-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+#screen-museum-complete .ending-btn-row .menu-btn {
+  flex: 1;
+}
+
+/* legacy class for compatibility, no-op */
+.museum-card { max-width: 360px; }
+.museum-stats {
+  background: #f8f0dc;
+  border: 2px dashed #c8a979;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 8px 0;
+}
+.museum-stats .ms-row {
+  display: flex;
+  justify-content: space-between;
+}
+.museum-stats .ms-row .ms-val {
+  color: #c1322a;
+  font-weight: 700;
+}
+.museum-achievement-list {
+  max-height: 160px;
+  overflow-y: auto;
+  background: #fff8e8;
+  border: 1px solid #c8a979;
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin: 4px 0 8px;
+}
+.museum-achievement-list .ach-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 3px 0;
+  line-height: 1.4;
+}
+.museum-achievement-list .ach-icon { font-size: 14px; flex: 0 0 18px; }
+.museum-achievement-list .ach-name { font-weight: 700; color: #2b2b2b; }
+.museum-achievement-list .ach-desc { color: #888; margin-left: 4px; }
+.museum-achievement-list .ach-locked { opacity: 0.35; }
+
+/* ===== v1.4 我的数据 tab ===== */
+.mydata-section {
+  background: #f8f0dc;
+  border: 2px solid #c8a979;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.mydata-section h3 {
+  font-size: 13px;
+  margin: 0 0 8px;
+  color: #c1322a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mydata-stats {
+  font-size: 11px;
+  line-height: 1.9;
+  color: #2b2b2b;
+}
+.mydata-stats .ms-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  border-bottom: 1px dotted #c8a97955;
+}
+.mydata-stats .ms-row:last-child { border-bottom: none; }
+.mydata-stats .ms-val { color: #c1322a; font-weight: 700; }
+.mydata-bio {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #2b2b2b;
+  white-space: pre-wrap;
+}
+.mydata-bio b { color: #c1322a; }
+
+/* 破纪录 toast 特殊样式 */
+.toast.record-break {
+  background: linear-gradient(135deg, #f4d150, #d4a843);
+  color: #2b2b2b;
+  font-weight: 700;
+  border: 2px solid #2b2b2b;
+}
+
 /* iOS 风顶部 Toast (日薪到账等轻提示) */
 .toast {
   position: fixed;

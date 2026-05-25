@@ -109,6 +109,10 @@ function loadArchive() {
       archive.karma = archive.karma ?? 0;
       archive.unlockedSkills = archive.unlockedSkills ?? [];
       archive.comboSeen = archive.comboSeen ?? {}; // 老存档迁移
+      // v1.4: bestRecords + stats 迁移
+      archive.bestRecords = archive.bestRecords ?? {};
+      archive.stats = archive.stats ?? defaultArchiveStats();
+      archive.unlockedAchievements = archive.unlockedAchievements ?? [];
       return;
     }
   } catch (e) { console.warn(e); }
@@ -122,7 +126,29 @@ function loadArchive() {
     unlockedSkills: [],
     // 跨局记忆：{ "horse:engineer": [eventId, ...] }
     // 同 (character, job) 组合连续投胎时避免抽到重复事件，组合内事件全见过才清零
-    comboSeen: {}
+    comboSeen: {},
+    // v1.4: 本世最佳记录（A 方案）
+    bestRecords: {},  // { maxDay, maxSnark, maxMoney, maxKarmaPerLife }
+    // v1.4: 累计统计（C 方案）
+    stats: defaultArchiveStats(),
+    // v1.4: 成就解锁列表（B 方案）
+    unlockedAchievements: []
+  };
+}
+
+function defaultArchiveStats() {
+  return {
+    totalDaysSurvived: 0,    // 累计存活天数
+    totalSnark: 0,           // 累计嘴硬次数
+    totalMoney: 0,           // 累计存款（每局结束时累加）
+    totalKarma: 0,           // 累计业力（包含已花掉的）
+    jobsUsed: [],            // 用过的 jobId 列表
+    charactersUsed: [],      // 用过的 character 列表
+    favoriteEnding: null,    // 最常死法（每次 finalize 时计算）
+    endingCounts: {},        // 每种结局触发次数
+    snarkAtWorkTotal: 0,
+    snarkAtLifeTotal: 0,
+    rescueUsedCount: 0       // 救援购买总次数
   };
 }
 
@@ -1203,8 +1229,76 @@ function finalizeLife(ending) {
     isNew: true,
     timestamp: Date.now()
   });
+
+  // ===== v1.4 本世最佳记录 + 累计统计 + 成就检测 =====
+  archive.bestRecords = archive.bestRecords || {};
+  archive.stats = archive.stats || defaultArchiveStats();
+  archive.unlockedAchievements = archive.unlockedAchievements || [];
+
+  state.brokeRecords = [];  // 本局破的纪录，给后续 toast 用
+
+  // 检测纪录
+  const checkRecord = (key, value, label, formatter) => {
+    const oldBest = archive.bestRecords[key] || 0;
+    if (value > oldBest) {
+      archive.bestRecords[key] = value;
+      if (oldBest > 0) {  // 第一次不算"破纪录"
+        state.brokeRecords.push({
+          label,
+          newValue: formatter ? formatter(value) : value,
+          oldValue: formatter ? formatter(oldBest) : oldBest
+        });
+      }
+    }
+  };
+  checkRecord('maxDay', state.day, '最长存活', v => v + ' 天');
+  checkRecord('maxSnark', state.history.snarkCount, '单局最多嘴硬', v => v + ' 次');
+  checkRecord('maxMoney', state.money, '单局最高存款', v => '¥' + v);
+  checkRecord('maxKarmaPerLife', karmaGain, '单局最高业力', v => v + ' 点');
+
+  // 累加统计
+  const s = archive.stats;
+  s.totalDaysSurvived += state.day;
+  s.totalSnark += state.history.snarkCount || 0;
+  s.totalMoney += Math.max(0, state.money);
+  s.totalKarma += karmaGain;
+  s.snarkAtWorkTotal += state.history.snarkWorkCount || 0;
+  s.snarkAtLifeTotal += state.history.snarkLifeCount || 0;
+  if (!s.jobsUsed.includes(state.profile.jobId)) s.jobsUsed.push(state.profile.jobId);
+  if (!s.charactersUsed.includes(state.character)) s.charactersUsed.push(state.character);
+  s.endingCounts = s.endingCounts || {};
+  s.endingCounts[ending.id] = (s.endingCounts[ending.id] || 0) + 1;
+  // 重算最常死法
+  let maxCount = 0, fav = null;
+  for (const [id, c] of Object.entries(s.endingCounts)) {
+    if (c > maxCount) { maxCount = c; fav = id; }
+  }
+  s.favoriteEnding = fav;
+
+  // 成就检测：返回本次新解锁的成就列表（用于 modal 显示）
+  const newlyUnlockedAchievements = (window.ACHIEVEMENTS || []).filter(a => {
+    if (archive.unlockedAchievements.includes(a.id)) return false;
+    return a.condition(state, archive);
+  });
+  for (const a of newlyUnlockedAchievements) {
+    archive.unlockedAchievements.push(a.id);
+  }
+
+  // 满图鉴判定：本次是否首次解锁所有 16 个结局
+  const isMuseumComplete =
+    archive.unlockedEndings.length === window.ENDINGS.length
+    && newlyUnlockedAchievements.some(a => a.id === 'museum_complete');
+
+  // 缓存 flags 供 clearState 之后的逻辑读取
+  const flags = {
+    brokeRecords: state.brokeRecords.slice(),
+    newlyUnlockedAchievements,
+    isMuseumComplete
+  };
+
   saveArchive();
   clearState();
+  return flags;
 }
 
 // =====================
@@ -1448,7 +1542,21 @@ function nextStep() {
   renderGame();
 }
 
+// v1.4: 缓存上一局生命的 flags（finalizeLife 调用 clearState 后 state 不可用）
+let _lastLifeFlags = null;
+
 function showEnding(ending) {
+  const flags = finalizeLife(ending);
+  _lastLifeFlags = flags;
+  // 满图鉴：全屏接管，跳过普通结局页
+  if (flags.isMuseumComplete) {
+    showMuseumComplete(ending, flags);
+    return;
+  }
+  showEndingScreen(ending);
+}
+
+function showEndingScreen(ending) {
   if (window.SFX) {
     // v1.4 重音：终局触发瞬间一记低音锣 + 戏剧停顿
     if (ending.id !== 'survival') {
@@ -1492,11 +1600,86 @@ function showEnding(ending) {
   showScreen('screen-ending');
 }
 
+// v1.4 满图鉴 · 全屏接管
+function showMuseumComplete(ending, flags) {
+  if (window.SFX) {
+    SFX.play('ending_strike');
+    setTimeout(() => SFX.play('unlock_milestone'), 800);
+    SFX.playBGM('ending', 3);
+  }
+
+  // 1. 最后一次死亡的信息
+  $('#museum-final-name').textContent = ending.name;
+  $('#museum-final-summary').textContent = ending.summary;
+
+  // 2. 16 个结局缩略图
+  const grid = $('#museum-endings-grid');
+  grid.innerHTML = '';
+  window.ENDINGS.forEach(e => {
+    const cell = document.createElement('div');
+    cell.className = 'museum-ending-cell';
+    cell.innerHTML = `<span class="me-icon">💀</span><span>${e.name}</span>`;
+    grid.appendChild(cell);
+  });
+
+  // 3. 总数据
+  const s = archive.stats || {};
+  $('#museum-stats').innerHTML = `
+    <div class="ms-row"><span>总投胎次数</span><span class="ms-val">${archive.totalLives} 次</span></div>
+    <div class="ms-row"><span>累计存活</span><span class="ms-val">${s.totalDaysSurvived || 0} 天</span></div>
+    <div class="ms-row"><span>累计嘴硬</span><span class="ms-val">${s.totalSnark || 0} 次</span></div>
+    <div class="ms-row"><span>累计存款</span><span class="ms-val">¥${s.totalMoney || 0}</span></div>
+    <div class="ms-row"><span>当前业力</span><span class="ms-val">${archive.karma}</span></div>
+    <div class="ms-row"><span>已用职业</span><span class="ms-val">${(s.jobsUsed || []).length} / 7</span></div>
+  `;
+
+  // 4. 成就列表
+  const allAch = window.ACHIEVEMENTS || [];
+  const unlocked = new Set(archive.unlockedAchievements || []);
+  $('#museum-achievement-count').textContent = `${unlocked.size} / ${allAch.length}`;
+  const list = $('#museum-achievement-list');
+  list.innerHTML = '';
+  allAch.forEach(a => {
+    const isUnlocked = unlocked.has(a.id);
+    const row = document.createElement('div');
+    row.className = 'ach-row' + (isUnlocked ? '' : ' ach-locked');
+    row.innerHTML = `
+      <span class="ach-icon">${a.icon}</span>
+      <div><span class="ach-name">${a.name}</span><span class="ach-desc"> · ${a.desc}</span></div>
+    `;
+    list.appendChild(row);
+  });
+
+  showScreen('screen-museum-complete');
+}
+
+// v1.4 破纪录 toast 序列 + 满图鉴后续衔接
+function runPostEndingCelebration(onDone) {
+  const flags = _lastLifeFlags;
+  _lastLifeFlags = null;
+  if (!flags || !flags.brokeRecords || flags.brokeRecords.length === 0) {
+    onDone();
+    return;
+  }
+  // 顺序弹破纪录 toast
+  let i = 0;
+  const showNext = () => {
+    if (i >= flags.brokeRecords.length) {
+      onDone();
+      return;
+    }
+    const r = flags.brokeRecords[i++];
+    showToast(`🏆 新纪录！${r.label} ${r.newValue}（旧 ${r.oldValue}）`, 2200);
+    setTimeout(showNext, 2400);
+  };
+  showNext();
+}
+
 // =====================
 // 档案
 // =====================
 function renderArchive(tab = 'lives') {
-  ['lives', 'endings', 'events', 'rank'].forEach(t => {
+  ['lives', 'endings', 'events', 'rank', 'bio'].forEach(t => {
     $('#archive-' + t).classList.toggle('hidden', t !== tab);
   });
   $$('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -1598,7 +1781,88 @@ function renderArchive(tab = 'lives') {
     }
   }
 
+  if (tab === 'bio') {
+    $('#archive-bio').innerHTML = renderBiographyHTML();
+  }
+
   showScreen('screen-archive');
+}
+
+// v1.4 自传板块 - 自动生成叙事文本
+function renderBiographyHTML() {
+  const a = archive;
+  const s = a.stats || defaultArchiveStats();
+  if (a.totalLives === 0) {
+    return '<div class="empty">还没有故事可写——先去投个胎吧。</div>';
+  }
+
+  // 找最长存活那一世
+  const longestLife = a.lives.reduce((best, l) => l.day > (best?.day || 0) ? l : best, null);
+  const longestStr = longestLife
+    ? `${longestLife.day} 天，那是一只 ${longestLife.profile?.name?.replace(/^.*?(小马|小牛).*$/, '$1') || '牛马'}，做${longestLife.profile?.jobName || '不知道什么职业'}。`
+    : '还没有最长记录。';
+
+  // 死法 top 3
+  const endingCounts = s.endingCounts || {};
+  const sortedEndings = Object.entries(endingCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const endingNameMap = {};
+  (window.ENDINGS || []).forEach(e => { endingNameMap[e.id] = e.name; });
+  const top3Endings = sortedEndings.length === 0 ? '暂无' :
+    sortedEndings.map(([id, c]) => `${endingNameMap[id] || id}（${c} 次）`).join('、');
+
+  // 最爱死法
+  const favEnding = s.favoriteEnding ? (endingNameMap[s.favoriteEnding] || s.favoriteEnding) : '还没有最爱';
+
+  // 嘴硬次数
+  const avgSnark = a.totalLives > 0 ? (s.totalSnark / a.totalLives).toFixed(1) : '0';
+
+  // 职业 + 角色
+  const jobNames = (s.jobsUsed || []).map(jid => {
+    const j = (window.JOBS || []).find(x => x.id === jid);
+    return j?.name || jid;
+  });
+  const charNames = (s.charactersUsed || []).map(cid => {
+    const c = (window.CHARACTERS || []).find(x => x.id === cid);
+    return c?.name || cid;
+  });
+
+  // 业力 + 还能买几个技能
+  const cheapestUnboughtSkill = (window.SKILLS || [])
+    .filter(sk => !(a.unlockedSkills || []).includes(sk.id))
+    .sort((a, b) => a.cost - b.cost)[0];
+  const canBuyMore = cheapestUnboughtSkill
+    ? Math.floor(a.karma / cheapestUnboughtSkill.cost)
+    : 0;
+  const skillsLine = cheapestUnboughtSkill
+    ? `你目前积累的业力是 ${a.karma}，足够再买 ${canBuyMore} 个秘籍。`
+    : `你已经把 ${(window.SKILLS || []).length} 个秘籍全解锁了。再无可买。`;
+
+  const charLine = charNames.length === 2
+    ? '你两个角色都试过，是个真·两栖牛马。'
+    : charNames.length === 1
+      ? `你只玩过 ${charNames[0]}，从没换过身。`
+      : '你还没投过任何胎。';
+
+  return `
+<div class="mydata-section">
+  <h3>📖 你的牛马自传</h3>
+  <div class="mydata-bio">你已经投胎 <b>${a.totalLives}</b> 次。最长一次活了 ${longestStr}
+
+你最常死于：<b>${top3Endings}</b>。
+你最爱的死法是：<b>${favEnding}</b>。
+
+嘴硬总次数：<b>${s.totalSnark || 0}</b>。这相当于每局怼 <b>${avgSnark}</b> 次。
+你试过 ${jobNames.length} 种职业${jobNames.length > 0 ? '：' + jobNames.join('、') : '（还没换过岗）'}。
+${charLine}
+
+${skillsLine}
+累计存活了 ${s.totalDaysSurvived || 0} 天，累计存款 ¥${s.totalMoney || 0}。
+
+你目前解锁的成就：${(a.unlockedAchievements || []).length} / ${(window.ACHIEVEMENTS || []).length}。${
+    (a.unlockedAchievements || []).length === (window.ACHIEVEMENTS || []).length ? ' 🏆 满成就！' : ''
+  }</div>
+</div>
+  `.trim();
 }
 
 // =====================
@@ -1706,20 +1970,34 @@ window.addEventListener('DOMContentLoaded', () => {
   $('#skills-back').onclick   = () => { if (window.SFX) SFX.play('back'); renderMenu(); };
   $('#ending-back').onclick   = () => {
     if (window.SFX) SFX.play('back');
-    // 首次挂了拦截：弹引导卡 2，玩家从卡里选去秘籍或再投胎，跳过 renderMenu
+    // 首次挂了拦截：弹引导卡 2
     if (maybeShowFirstDeathCard()) return;
-    renderMenu();
+    // v1.4: 满图鉴拦截 + 破纪录 toast → 再回菜单
+    runPostEndingCelebration(() => renderMenu());
   };
   $('#ending-replay').onclick = () => {
     if (window.SFX) SFX.play('choice_select');
     if (maybeShowFirstDeathCard()) return;
-    investiture = { character: null, jobId: null };
-    renderInvestiture('character');
+    runPostEndingCelebration(() => {
+      investiture = { character: null, jobId: null };
+      renderInvestiture('character');
+    });
   };
   $('#ending-to-skills').onclick = () => { if (window.SFX) SFX.play('click'); renderSkillTree(); };
 
   // 分享卡片
   $('#ending-share').onclick = () => {
+    const last = archive.lives[0];
+    if (last) window.showShareCard(last, archive);
+  };
+
+  // v1.4 满图鉴 全屏接管按钮
+  $('#museum-back').onclick = () => {
+    if (window.SFX) SFX.play('back');
+    runPostEndingCelebration(() => renderMenu());
+  };
+  $('#museum-share').onclick = () => {
+    if (window.SFX) SFX.play('click');
     const last = archive.lives[0];
     if (last) window.showShareCard(last, archive);
   };
