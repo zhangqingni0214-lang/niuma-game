@@ -1374,6 +1374,8 @@ window.EVENTS = [
       {
         text: '"在的"，然后真的没参与，全程已读',
         snark: true,
+        // 强制使用对得上"已读不参与"的罚款理由，不走 work-boss 随机池
+        snarkReason: '老板 cue 你三次没回，"工作态度差"被记一笔',
         effects: { mood: +8, stress: +3, salary: -5 }
       },
       {
