@@ -2087,20 +2087,28 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     setTimeout(() => { _onboardingClosing = false; }, 500);
   };
-  // 多重事件绑定：click（PC/Android）+ pointerup（现代手机统一事件）+ touchend（iOS 兜底）
+  // 多重事件绑定：click + pointerup + touchstart + touchend
+  // 夸克/UC 等国产浏览器可能拦截某种事件，全绑了至少有一个能用
   $('#onboarding-close').onclick = onboardingCloseHandler;
+  $('#onboarding-close').addEventListener('click', onboardingCloseHandler);
   $('#onboarding-close').addEventListener('pointerup', onboardingCloseHandler);
-  $('#onboarding-close').addEventListener('touchend', e => {
-    e.preventDefault();  // 防 touchend + click 双触
-    onboardingCloseHandler();
+  $('#onboarding-close').addEventListener('touchstart', e => {
+    // touchstart 不 preventDefault，让浏览器自己处理 :active 动画
+    setTimeout(onboardingCloseHandler, 50);  // 50ms 延迟让用户看见按下效果
   });
-  // 点 modal 任意区域也可关闭（兜底兜底兜底——按钮如果完全没反应至少点黑色蒙层能闪关）
+  $('#onboarding-close').addEventListener('touchend', onboardingCloseHandler);
+  // 点 modal 任意区域也可关闭（兜底——按钮如果完全没反应至少点黑色蒙层能闪关）
   $('#onboarding-modal').addEventListener('click', e => {
     if (e.target === $('#onboarding-modal')) onboardingCloseHandler();
   });
-  $('#onboarding-modal').addEventListener('touchend', e => {
+  $('#onboarding-modal').addEventListener('touchstart', e => {
     if (e.target === $('#onboarding-modal')) {
-      e.preventDefault();
+      setTimeout(onboardingCloseHandler, 50);
+    }
+  });
+  // Enter 键兜底（PC 也方便）
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !$('#onboarding-modal').classList.contains('hidden')) {
       onboardingCloseHandler();
     }
   });

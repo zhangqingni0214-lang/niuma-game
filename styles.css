@@ -1329,6 +1329,13 @@ html, body {
 .onboarding-btn-row .ios-btn {
   flex: 1;
 }
+.onboarding-hint {
+  font-size: 10px;
+  color: #888;
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}
 
 /* ===== v1.4 满图鉴 · 地府名人堂（全屏接管）===== */
 #screen-museum-complete {
