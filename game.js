@@ -2072,8 +2072,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ===== 新手引导卡 1：点【今日投胎】后才弹（不是 DOMContentLoaded 即弹） =====
   // _onboardingNextAction 由 btn-start 设置，关闭时执行（继续进投胎页）
-  // v1.4.x: 手机端容错——SFX 或 localStorage 抛错时仍能关闭并继续
+  // v1.4.x: 手机端容错——SFX 或 localStorage 抛错时仍能关闭并继续 + 多重事件兜底 + 点 modal 任意区域可关闭
+  let _onboardingClosing = false;  // 防双触
   const onboardingCloseHandler = () => {
+    if (_onboardingClosing) return;
+    _onboardingClosing = true;
     try { if (window.SFX) SFX.play('click'); } catch (e) { console.warn('SFX failed:', e); }
     try { localStorage.setItem('onboarding_seen_v1', '1'); } catch (e) { console.warn('localStorage failed:', e); }
     $('#onboarding-modal').classList.add('hidden');
@@ -2082,12 +2085,24 @@ window.addEventListener('DOMContentLoaded', () => {
       _onboardingNextAction = null;
       try { action(); } catch (e) { console.warn('next action failed:', e); }
     }
+    setTimeout(() => { _onboardingClosing = false; }, 500);
   };
+  // 多重事件绑定：click（PC/Android）+ pointerup（现代手机统一事件）+ touchend（iOS 兜底）
   $('#onboarding-close').onclick = onboardingCloseHandler;
-  // 手机端 touchend 兜底（iOS Safari 偶尔吞掉 click）
+  $('#onboarding-close').addEventListener('pointerup', onboardingCloseHandler);
   $('#onboarding-close').addEventListener('touchend', e => {
-    e.preventDefault();
+    e.preventDefault();  // 防 touchend + click 双触
     onboardingCloseHandler();
+  });
+  // 点 modal 任意区域也可关闭（兜底兜底兜底——按钮如果完全没反应至少点黑色蒙层能闪关）
+  $('#onboarding-modal').addEventListener('click', e => {
+    if (e.target === $('#onboarding-modal')) onboardingCloseHandler();
+  });
+  $('#onboarding-modal').addEventListener('touchend', e => {
+    if (e.target === $('#onboarding-modal')) {
+      e.preventDefault();
+      onboardingCloseHandler();
+    }
   });
 
   // ===== 新手引导卡 2：首次挂掉之后按钮处理 =====
