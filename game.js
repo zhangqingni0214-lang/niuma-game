@@ -2072,16 +2072,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ===== 新手引导卡 1：点【今日投胎】后才弹（不是 DOMContentLoaded 即弹） =====
   // _onboardingNextAction 由 btn-start 设置，关闭时执行（继续进投胎页）
-  $('#onboarding-close').onclick = () => {
-    if (window.SFX) SFX.play('click');
-    localStorage.setItem('onboarding_seen_v1', '1');
+  // v1.4.x: 手机端容错——SFX 或 localStorage 抛错时仍能关闭并继续
+  const onboardingCloseHandler = () => {
+    try { if (window.SFX) SFX.play('click'); } catch (e) { console.warn('SFX failed:', e); }
+    try { localStorage.setItem('onboarding_seen_v1', '1'); } catch (e) { console.warn('localStorage failed:', e); }
     $('#onboarding-modal').classList.add('hidden');
     if (_onboardingNextAction) {
       const action = _onboardingNextAction;
       _onboardingNextAction = null;
-      action();
+      try { action(); } catch (e) { console.warn('next action failed:', e); }
     }
   };
+  $('#onboarding-close').onclick = onboardingCloseHandler;
+  // 手机端 touchend 兜底（iOS Safari 偶尔吞掉 click）
+  $('#onboarding-close').addEventListener('touchend', e => {
+    e.preventDefault();
+    onboardingCloseHandler();
+  });
 
   // ===== 新手引导卡 2：首次挂掉之后按钮处理 =====
   // 触发逻辑写在 ending-replay / ending-back 的 onclick 里（见上面）
