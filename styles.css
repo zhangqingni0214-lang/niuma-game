@@ -560,6 +560,39 @@ html, body {
   font-style: italic;
   margin-bottom: 8px;
 }
+
+/* v1.4.x 数值感知 - 本次变化 mini summary */
+.choice-result-deltas {
+  font-size: 11px;
+  line-height: 1.8;
+  padding: 6px 8px;
+  background: #fffaee;
+  border: 1px dotted #c8a979;
+  border-radius: 4px;
+  margin: 4px 0 8px;
+}
+.choice-result-deltas .delta-label {
+  font-weight: 700;
+  color: #888;
+  margin-right: 4px;
+}
+.choice-result-deltas .delta-item {
+  display: inline-block;
+  margin-right: 8px;
+  font-weight: 600;
+}
+.choice-result-deltas .delta-good { color: #2a7a2a; }
+.choice-result-deltas .delta-bad  { color: #c0392b; }
+
+/* v1.4.x 属性条变化 flash 动画 */
+@keyframes stat-flash {
+  0%   { box-shadow: 0 0 0 2px #f4d150; background: rgba(244, 209, 80, 0.2); }
+  100% { box-shadow: 0 0 0 0 transparent; background: transparent; }
+}
+.stat-bar.changed {
+  animation: stat-flash 1.2s ease-out;
+  border-radius: 3px;
+}
 .next-btn {
   background: #2a2419;
   color: #fff8e7;

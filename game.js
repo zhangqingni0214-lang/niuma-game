@@ -347,9 +347,11 @@ function applyEffects(effects, ctx) {
   if (adj.health && adj.health < 0)   adj.health  = Math.ceil(adj.health * 0.8);
 
   const oldHealth = state.stats.health;
+  const oldStats = { ...state.stats };  // v1.4.x 数值感知：记录变化前快照
 
   // 每次选项前清空上次扣款明细
   state.lastChoiceCosts = [];
+  state.lastChoiceDeltas = [];  // v1.4.x: 本次选项导致的属性变化（含 money）
 
   for (const [k, v] of Object.entries(adj)) {
     if (k === 'money') {
@@ -361,6 +363,25 @@ function applyEffects(effects, ctx) {
     } else if (state.stats[k] !== undefined) {
       state.stats[k] = clamp(state.stats[k] + v, 0, 100);
     }
+  }
+
+  // 计算实际属性 delta（clamp 后的真实变化）
+  const STAT_LABELS = {
+    health: { icon: '❤️', name: '健康' },
+    stress: { icon: '😰', name: '压力' },
+    mood:   { icon: '💢', name: '心情' },
+    fatigue:{ icon: '😴', name: '疲劳' },
+    skill:  { icon: '🧠', name: '技能' },
+    salary: { icon: '💼', name: '工资分' }
+  };
+  for (const k of Object.keys(STAT_LABELS)) {
+    const delta = state.stats[k] - oldStats[k];
+    if (delta !== 0) {
+      state.lastChoiceDeltas.push({ key: k, ...STAT_LABELS[k], delta });
+    }
+  }
+  if (adj.money) {
+    state.lastChoiceDeltas.push({ key: 'money', icon: '💰', name: '存款', delta: adj.money });
   }
 
   // v1.1 钝化术：心情永远 ≥ 30，但上限锁 90（兜底+封顶的二级人格）
@@ -1515,6 +1536,8 @@ function makeChoice(ev, idx) {
 
   const showResultOrNext = () => {
     const resolvedResult = resolveText(choice.result, state.character);
+    // v1.4.x 数值感知：渲染 delta summary + flash 变化的属性条
+    renderChoiceDeltas();
     if (resolvedResult) {
       $('#choice-result-text').textContent = resolvedResult;
       $('#choice-result').classList.remove('hidden');
@@ -1598,6 +1621,43 @@ function showEndingScreen(ending) {
   const lastLife = archive.lives[0];
   $('#ending-karma').textContent = `本世业力 +${lastLife?.karmaGain || 0} · 当前总业力 ${archive.karma}`;
   showScreen('screen-ending');
+}
+
+// v1.4.x 数值感知：渲染 delta summary + 给变化的属性条加 .changed flash
+function renderChoiceDeltas() {
+  const deltas = state?.lastChoiceDeltas || [];
+  const summaryEl = $('#choice-result-deltas');
+  if (!summaryEl) return;
+
+  if (deltas.length === 0) {
+    summaryEl.classList.add('hidden');
+    summaryEl.innerHTML = '';
+  } else {
+    const parts = deltas.map(d => {
+      const sign = d.delta > 0 ? '+' : '';
+      // money 用 ¥ 前缀，其他用数字
+      const val = d.key === 'money' ? `${sign}¥${d.delta}` : `${sign}${d.delta}`;
+      const cls = d.delta > 0 ? 'delta-pos' : 'delta-neg';
+      // 健康/心情/技能：+ 是好；压力/疲劳：+ 是坏；工资分：+ 好；money：+ 好
+      const isBenefit = ['stress', 'fatigue'].includes(d.key) ? d.delta < 0 : d.delta > 0;
+      const colorCls = isBenefit ? 'delta-good' : 'delta-bad';
+      return `<span class="delta-item ${colorCls}">${d.icon} ${d.name} ${val}</span>`;
+    });
+    summaryEl.innerHTML = '<span class="delta-label">本次变化</span> ' + parts.join(' ');
+    summaryEl.classList.remove('hidden');
+  }
+
+  // 给变化的属性条加 .changed 闪一下
+  for (const d of deltas) {
+    if (d.key === 'money') continue;
+    const bar = document.querySelector(`.stat-bar[data-stat="${d.key}"]`);
+    if (bar) {
+      bar.classList.remove('changed');
+      void bar.offsetWidth;  // 强制 reflow 重新触发 animation
+      bar.classList.add('changed');
+      setTimeout(() => bar.classList.remove('changed'), 1200);
+    }
+  }
 }
 
 // v1.4 满图鉴 · 全屏接管

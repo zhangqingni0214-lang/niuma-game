@@ -9,7 +9,7 @@
   <meta property="og:type" content="website" />
   <title>牛马公司</title>
   <!-- Build: v1.0.0 ship · 2026-05-23 -->
-  <link rel="stylesheet" href="styles.css?v=ship12" />
+  <link rel="stylesheet" href="styles.css?v=ship13" />
   <link rel="stylesheet" href="sharecard.css?v=ship1" />
 </head>
 <body>
@@ -88,12 +88,12 @@
             <div class="status" id="status-tag">正常</div>
           </div>
           <div class="stats-block">
-            <div class="stat-row"><span class="stat-label">健康</span><div class="bar"><div id="stat-health" class="bar-fill health"></div></div><span class="stat-val" id="stat-health-val">80</span></div>
-            <div class="stat-row"><span class="stat-label">压力</span><div class="bar"><div id="stat-stress" class="bar-fill stress"></div></div><span class="stat-val" id="stat-stress-val">30</span></div>
-            <div class="stat-row"><span class="stat-label">心情</span><div class="bar"><div id="stat-mood" class="bar-fill mood"></div></div><span class="stat-val" id="stat-mood-val">70</span></div>
-            <div class="stat-row"><span class="stat-label">疲劳</span><div class="bar"><div id="stat-fatigue" class="bar-fill fatigue"></div></div><span class="stat-val" id="stat-fatigue-val">20</span></div>
-            <div class="stat-row"><span class="stat-label">技能</span><div class="bar"><div id="stat-skill" class="bar-fill skill"></div></div><span class="stat-val" id="stat-skill-val">20</span></div>
-            <div class="stat-row"><span class="stat-label">工资</span><div class="bar"><div id="stat-salary" class="bar-fill salary"></div></div><span class="stat-val" id="stat-salary-val">30</span></div>
+            <div class="stat-row stat-bar" data-stat="health"><span class="stat-label">健康</span><div class="bar"><div id="stat-health" class="bar-fill health"></div></div><span class="stat-val" id="stat-health-val">80</span></div>
+            <div class="stat-row stat-bar" data-stat="stress"><span class="stat-label">压力</span><div class="bar"><div id="stat-stress" class="bar-fill stress"></div></div><span class="stat-val" id="stat-stress-val">30</span></div>
+            <div class="stat-row stat-bar" data-stat="mood"><span class="stat-label">心情</span><div class="bar"><div id="stat-mood" class="bar-fill mood"></div></div><span class="stat-val" id="stat-mood-val">70</span></div>
+            <div class="stat-row stat-bar" data-stat="fatigue"><span class="stat-label">疲劳</span><div class="bar"><div id="stat-fatigue" class="bar-fill fatigue"></div></div><span class="stat-val" id="stat-fatigue-val">20</span></div>
+            <div class="stat-row stat-bar" data-stat="skill"><span class="stat-label">技能</span><div class="bar"><div id="stat-skill" class="bar-fill skill"></div></div><span class="stat-val" id="stat-skill-val">20</span></div>
+            <div class="stat-row stat-bar" data-stat="salary"><span class="stat-label">工资</span><div class="bar"><div id="stat-salary" class="bar-fill salary"></div></div><span class="stat-val" id="stat-salary-val">30</span></div>
           </div>
         </div>
         <div class="money-row">
@@ -125,6 +125,8 @@
 
       <div class="choice-result hidden" id="choice-result">
         <div class="choice-result-text" id="choice-result-text"></div>
+        <!-- v1.4.x 数值感知：本次变化 mini summary -->
+        <div class="choice-result-deltas hidden" id="choice-result-deltas"></div>
         <button class="next-btn" id="next-btn">继续 →</button>
       </div>
 
@@ -330,6 +332,6 @@
   <script src="sfx.js?v=ship13"></script>
   <script src="sharecard.js?v=ship1"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="game.js?v=ship28"></script>
+  <script src="game.js?v=ship29"></script>
 </body>
 </html>
