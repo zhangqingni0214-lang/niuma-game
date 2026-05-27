@@ -1,6 +1,18 @@
 /* === 牛马公司 样式 === */
 
-/* 像素字体：凤凰点阵体 Vonwaon Bitmap 16px */
+/* v1.5: 全局字体改为 得意黑 Smiley Sans（atelier-anchor/smiley-sans v2.0.1）
+ * 开源可商用，圆润 + 微斜，符合游戏冷幽默调性
+ * woff2 字体本地存到 assets/fonts/（1.1MB，比 ttf 小 60%）
+ */
+@font-face {
+  font-family: 'Smiley Sans';
+  src: url('assets/fonts/SmileySans-Oblique.ttf.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 像素字体保留：Vonwaon Bitmap 用于个别需要"复古点阵"质感的位置（可选） */
 @font-face {
   font-family: 'Vonwaon';
   src: url('assets/vonwaon-16px.ttf') format('truetype');
@@ -12,11 +24,11 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
   margin: 0; padding: 0;
-  font-family: 'Vonwaon', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: 'Smiley Sans', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   background: #ddd1bd;
   color: #2b2b2b;
-  -webkit-font-smoothing: none;
-  font-smooth: never;
+  /* 得意黑是抗锯齿字体，关闭旧的 pixel 渲染 */
+  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
