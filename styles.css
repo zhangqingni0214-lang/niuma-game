@@ -27,8 +27,18 @@ html, body {
   font-family: 'Smiley Sans', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   background: #ddd1bd;
   color: #2b2b2b;
-  /* 得意黑是抗锯齿字体，关闭旧的 pixel 渲染 */
+  /* 得意黑是抗锯齿字体 */
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 菜单页保留原 Vonwaon 像素字体（用户偏好） */
+#screen-menu,
+#screen-menu * {
+  font-family: 'Vonwaon', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* 像素字体关闭抗锯齿才有"棱角" */
+  -webkit-font-smoothing: none;
+  font-smooth: never;
   -moz-osx-font-smoothing: grayscale;
 }
 
