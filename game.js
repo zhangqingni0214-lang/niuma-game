@@ -1522,24 +1522,34 @@ function setupEventComic(ev) {
   const textEl = $('#event-text');
 
   const hook = (window.EVENT_HOOKS || {})[ev.id];
-  const imgSrc = `assets/comics/${ev.id}.jpg`;
+  const ver = '?v=' + (window._comicVer || '2');
+  // v1.5.1 双角色：优先按当前角色加载 <id>_<character>.jpg，
+  // 失败回退 <id>.jpg（旧单版），再失败回退纯文字
+  const charSrc = `assets/comics/${ev.id}_${state.character}.jpg`;
+  const fallbackSrc = `assets/comics/${ev.id}.jpg`;
 
-  // 先假设有图：尝试加载，失败则回退纯文字
-  imgEl.onerror = () => {
-    // 无图：隐藏漫画区，长文直接全显，标题正常
-    comicEl.classList.add('hidden');
-    toggleEl.classList.add('hidden');
-    textEl.classList.remove('hidden');
-  };
-  imgEl.onload = () => {
+  const showWithImage = () => {
     comicEl.classList.remove('hidden');
     bubbleEl.textContent = hook || ev.title;
-    // 有图时：长文默认收起，标题保留作小标题
     toggleEl.classList.remove('hidden');
     textEl.classList.add('hidden');
     toggleEl.textContent = '📖 看完整故事 ▾';
   };
-  imgEl.src = imgSrc + '?v=' + (window._comicVer || '1');
+  const showTextOnly = () => {
+    comicEl.classList.add('hidden');
+    toggleEl.classList.add('hidden');
+    textEl.classList.remove('hidden');
+  };
+
+  // 第一级：角色专属图
+  imgEl.onload = showWithImage;
+  imgEl.onerror = () => {
+    // 第二级：回退到无后缀单版图
+    imgEl.onerror = showTextOnly;  // 第三级：纯文字
+    imgEl.onload = showWithImage;
+    imgEl.src = fallbackSrc + ver;
+  };
+  imgEl.src = charSrc + ver;
 
   // 折叠开关
   toggleEl.onclick = () => {
