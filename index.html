@@ -9,7 +9,7 @@
   <meta property="og:type" content="website" />
   <title>牛马公司</title>
   <!-- Build: v1.0.0 ship · 2026-05-23 -->
-  <link rel="stylesheet" href="styles.css?v=ship15" />
+  <link rel="stylesheet" href="styles.css?v=ship16" />
   <link rel="stylesheet" href="sharecard.css?v=ship1" />
 </head>
 <body>
@@ -119,7 +119,16 @@
       </div>
 
       <div class="event-card">
-        <div class="event-title" id="event-title">—</div>
+        <!-- v1.5 漫画图 + HTML 气泡（2A）。无图时自动隐藏，回退纯文字 -->
+        <div class="event-comic hidden" id="event-comic">
+          <img id="event-comic-img" src="" alt="" />
+          <div class="comic-bubble" id="event-comic-bubble"></div>
+        </div>
+        <!-- 标题 + 看完整故事 同一行，靠左 -->
+        <div class="event-title-row">
+          <div class="event-title" id="event-title">—</div>
+          <button class="event-fulltext-toggle hidden" id="event-fulltext-toggle">📖 看完整故事 ▾</button>
+        </div>
         <div class="event-text" id="event-text">—</div>
       </div>
 
@@ -328,10 +337,11 @@
   <script src="endings.js?v=ship7"></script>
   <script src="skills.js?v=ship12"></script>
   <script src="achievements.js?v=ship1"></script>
+  <script src="hooks.js?v=ship1"></script>
   <script src="tags.js?v=ship1"></script>
   <script src="sfx.js?v=ship13"></script>
   <script src="sharecard.js?v=ship1"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="game.js?v=ship29"></script>
+  <script src="game.js?v=ship31"></script>
 </body>
 </html>

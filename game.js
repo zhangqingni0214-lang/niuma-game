@@ -1493,6 +1493,9 @@ function renderGame() {
   $('#event-title').textContent = ev.title;
   $('#event-text').textContent = ev.text;
 
+  // v1.5 漫画图 + 气泡 + 长文折叠
+  setupEventComic(ev);
+
   const choicesEl = $('#choices');
   choicesEl.innerHTML = '';
   ev.choices.forEach((c, idx) => {
@@ -1507,6 +1510,43 @@ function renderGame() {
 
   $('#choice-result').classList.add('hidden');
   showScreen('screen-game');
+}
+
+// v1.5 事件漫画图 + HTML 气泡 + 长文折叠
+function setupEventComic(ev) {
+  const comicEl = $('#event-comic');
+  const imgEl = $('#event-comic-img');
+  const bubbleEl = $('#event-comic-bubble');
+  const titleEl = $('#event-title');
+  const toggleEl = $('#event-fulltext-toggle');
+  const textEl = $('#event-text');
+
+  const hook = (window.EVENT_HOOKS || {})[ev.id];
+  const imgSrc = `assets/comics/${ev.id}.jpg`;
+
+  // 先假设有图：尝试加载，失败则回退纯文字
+  imgEl.onerror = () => {
+    // 无图：隐藏漫画区，长文直接全显，标题正常
+    comicEl.classList.add('hidden');
+    toggleEl.classList.add('hidden');
+    textEl.classList.remove('hidden');
+  };
+  imgEl.onload = () => {
+    comicEl.classList.remove('hidden');
+    bubbleEl.textContent = hook || ev.title;
+    // 有图时：长文默认收起，标题保留作小标题
+    toggleEl.classList.remove('hidden');
+    textEl.classList.add('hidden');
+    toggleEl.textContent = '📖 看完整故事 ▾';
+  };
+  imgEl.src = imgSrc + '?v=' + (window._comicVer || '1');
+
+  // 折叠开关
+  toggleEl.onclick = () => {
+    const collapsed = textEl.classList.contains('hidden');
+    textEl.classList.toggle('hidden', !collapsed);
+    toggleEl.textContent = collapsed ? '📖 收起 ▴' : '📖 看完整故事 ▾';
+  };
 }
 
 function makeChoice(ev, idx) {
